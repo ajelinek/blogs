@@ -1,6 +1,6 @@
 ---
 description: Apply when implementing or modifying store architecture, repository, or service logic
-globs: *
+globs: 
 alwaysApply: false
 ---
 ## When to Use

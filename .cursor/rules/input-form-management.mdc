@@ -1,6 +1,6 @@
 ---
 description: Apply when implementing form components, input handling, or form state management
-globs: *
+globs: 
 alwaysApply: false
 ---
 ---

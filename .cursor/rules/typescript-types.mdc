@@ -1,7 +1,7 @@
 ---
 description: Apply when defining data models, component props, utility types, or ensuring type safety
-globs: *
-alwaysApply: true
+globs: 
+alwaysApply: false
 ---
 # TypeScript Type Standards
 

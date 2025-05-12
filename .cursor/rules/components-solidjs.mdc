@@ -1,6 +1,6 @@
 ---
 description: Apply when creating or modifying dynamic interactive UI components with client-side reactivity or state
-globs: *
+globs: 
 alwaysApply: false
 ---
 # File Structure

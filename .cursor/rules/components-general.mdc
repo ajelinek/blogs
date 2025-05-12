@@ -1,6 +1,6 @@
 ---
 description: Apply for all component creation to ensure accessibility and semantic HTML standards are followed
-globs: *
+globs: 
 alwaysApply: false
 ---
 

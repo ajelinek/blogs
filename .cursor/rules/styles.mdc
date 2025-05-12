@@ -1,6 +1,6 @@
 ---
 description: Apply when implementing component styling, CSS modules, or responsive design patterns
-globs: *
+globs: 
 alwaysApply: false
 ---
 ---

@@ -1,14 +1,17 @@
 ---
 description: Apply when creating or using base-level UI primitives like buttons, inputs, or dialogs
-globs: *
+globs:
 alwaysApply: false
 ---
+
 ---
-description: Apply when creating or using base-level UI primitives like buttons, inputs, or dialogs
----
+
+## description: Apply when creating or using base-level UI primitives like buttons, inputs, or dialogs
+
 # Foundation Component Requirements
 
 ## Core Principles
+
 - Single responsibility per component
 - Composition over inheritance
 - Full accessibility compliance
@@ -18,6 +21,7 @@ description: Apply when creating or using base-level UI primitives like buttons,
 - Consistent API patterns
 
 ## Required Base Components
+
 - Alert (notifications, errors)
 - Button (actions)
 - Dialog (modals, popups)
@@ -29,11 +33,13 @@ description: Apply when creating or using base-level UI primitives like buttons,
 - Table (data grids)
 
 ## Component Properties
+
 - Must extend BaseProps type
 - Consistent variant patterns
 - CSS module classes
 
 ## Accessibility Requirements
+
 - ARIA roles and states
 - Keyboard navigation
 - Focus management
@@ -46,6 +52,7 @@ description: Apply when creating or using base-level UI primitives like buttons,
 - Input validation
 
 ## Style Requirements
+
 - CSS modules only
 - Design token usage
 - Responsive design
@@ -56,5 +63,6 @@ description: Apply when creating or using base-level UI primitives like buttons,
 - z-index management
 
 ## Performance Rules
+
 - Lazy loading
 - Render optimization

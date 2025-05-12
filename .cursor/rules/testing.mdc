@@ -1,6 +1,6 @@
 ---
 description: Apply when implementing or modifying tests, test setup functions, page objects, or end-to-end test scenarios
-globs: *
+globs: 
 alwaysApply: false
 ---
 
