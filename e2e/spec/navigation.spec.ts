@@ -1,29 +1,14 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
+import { NavigationPage } from '../page/NavigationPage'
 
-class NavigationPage {
-  constructor(private page: Page) {}
-  async goto() {
-    await this.page.goto('/jelly-time/')
-  }
-  navLink(name: string) {
-    return this.page.getByRole('link', { name, exact: true })
-  }
-  async goTo(name: string) {
-    await this.navLink(name).click()
-  }
-  async title() {
-    return this.page.title()
-  }
-}
-
-async function setUp(page: Page) {
+async function setUp(page: import('@playwright/test').Page) {
   const navigation = new NavigationPage(page)
   await navigation.goto()
-  return { navigation }
+  return navigation
 }
 
 test('should navigate between pages', async ({ page }) => {
-  const { navigation } = await setUp(page)
+  const navigation = await setUp(page)
   await expect(await navigation.title()).toContain('Home | Blog and Presentations')
   await navigation.goTo('Blog')
   await expect(await navigation.title()).toContain('Blog | Articles and Tutorials')
@@ -34,7 +19,7 @@ test('should navigate between pages', async ({ page }) => {
 })
 
 test('navigation should be keyboard accessible', async ({ page }) => {
-  const { navigation } = await setUp(page)
+  const navigation = await setUp(page)
   await page.keyboard.press('Tab')
   await expect(navigation.navLink('Home')).toBeFocused()
   await page.keyboard.press('Tab')
@@ -47,7 +32,7 @@ test('navigation should be keyboard accessible', async ({ page }) => {
 })
 
 test('responsive layout shows navigation on mobile', async ({ page }) => {
-  const { navigation } = await setUp(page)
+  const navigation = await setUp(page)
   await page.setViewportSize({ width: 375, height: 667 })
   await expect(navigation.navLink('Home')).toBeVisible()
   await expect(navigation.navLink('Blog')).toBeVisible()

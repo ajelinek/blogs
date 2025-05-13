@@ -8,10 +8,7 @@ export default defineConfig({
   site: 'https://your-username.github.io',
   base: '/jelly-time',
   output: 'static',
-  vite: {
-    server: {
-      port: 4333,
-      strictPort: true
-    }
+  server: {
+    port: 4333,
   }
 })
