@@ -2,16 +2,16 @@
 import styles from './Navigation.module.css'
 
 const navItems = [
-  { label: 'Home', href: '/' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'Presentations', href: '/presentations' },
+  { label: 'Home', href: '/jelly-time/' },
+  { label: 'Blog', href: '/jelly-time/blog' },
+  { label: 'Presentations', href: '/jelly-time/presentations' },
 ]
 ---
 
 <nav class={styles.navigation} aria-label='Main navigation'>
   <div class='container'>
     <div class={styles.navContainer}>
-      <a href='/' class={styles.logo}>
+      <a href='/jelly-time/' class={styles.logo} tabindex='-1'>
         Blog<span>&</span>Presentations
       </a>
       <ul class={styles.navList} role='list'>
@@ -31,4 +31,3 @@ const navItems = [
     </div>
   </div>
 </nav>
-

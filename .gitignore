@@ -20,7 +20,15 @@ Thumbs.db
 
 # Playwright
 playwright-report/
+test-results/
 .test-results/
+
+# Playwright traces and artifacts
+**/trace/
+**/traces/
+**/screenshots/
+**/videos/
+**/artifacts/
 
 # VSCode
 .vscode/

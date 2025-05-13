@@ -3,10 +3,10 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
-    "start": "astro dev",
+    "dev": "astro dev --port 4333 --host",
+    "start": "astro dev --port 4333 --host",
     "build": "astro build",
-    "preview": "astro preview",
+    "preview": "astro preview --port 4333 --host",
     "astro": "astro",
     "lint": "eslint --ext .js,.ts,.astro src",
     "format": "prettier --write .",

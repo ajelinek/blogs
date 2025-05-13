@@ -6,11 +6,11 @@ import solidJs from '@astrojs/solid-js'
 export default defineConfig({
   integrations: [ solidJs() ],
   site: 'https://your-username.github.io',
-  base: '/blogs',
+  base: '/jelly-time',
   output: 'static',
   vite: {
     server: {
-      port: 4399,
+      port: 4333,
       strictPort: true
     }
   }

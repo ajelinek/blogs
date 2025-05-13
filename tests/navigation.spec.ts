@@ -3,10 +3,10 @@ import { test, expect, Page } from '@playwright/test'
 class NavigationPage {
   constructor(private page: Page) {}
   async goto() {
-    await this.page.goto('/')
+    await this.page.goto('/jelly-time/')
   }
   navLink(name: string) {
-    return this.page.getByRole('link', { name })
+    return this.page.getByRole('link', { name, exact: true })
   }
   async goTo(name: string) {
     await this.navLink(name).click()
@@ -42,6 +42,7 @@ test('navigation should be keyboard accessible', async ({ page }) => {
   await page.keyboard.press('Tab')
   await expect(navigation.navLink('Presentations')).toBeFocused()
   await page.keyboard.press('Enter')
+  await page.waitForNavigation()
   await expect(await navigation.title()).toContain('Presentations | Tech Talks and Slides')
 })
 
