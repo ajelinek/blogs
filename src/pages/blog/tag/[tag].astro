@@ -1,0 +1,88 @@
+---
+import { getCollection } from 'astro:content'
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import BlogCard from '../../../components/static/BlogCard.astro'
+
+export async function getStaticPaths() {
+  const allPosts = await getCollection('blog')
+  const uniqueTags = [...new Set(allPosts.flatMap(post => post.data.tags))]
+
+  return uniqueTags.map(tag => {
+    const filteredPosts = allPosts.filter(post => post.data.tags.includes(tag))
+    return {
+      params: { tag },
+      props: { posts: filteredPosts, tag },
+    }
+  })
+}
+
+const { posts, tag } = Astro.props
+
+// Sort by date (newest first)
+const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+
+// Get tag description (could be fetched from a database or config file)
+const tagDescriptions: Record<string, string> = {
+  astro: 'Articles about building with Astro.js',
+  solidjs: 'Learn about the reactive SolidJS framework',
+  'web-development': 'Web development tips, tricks and best practices',
+  javascript: 'JavaScript tutorials and insights',
+  jamstack: 'Modern web development architecture',
+}
+
+const tagDescription = tagDescriptions[tag] || `Articles tagged with ${tag}`
+---
+
+<BaseLayout title={`${tag} | Blog`}>
+  <main>
+    <section class='page-header'>
+      <div class='container'>
+        <h1>{tag}</h1>
+        <p>{tagDescription}</p>
+        <a href='/jelly-time/blog' class='back-link'>← Back to all posts</a>
+      </div>
+    </section>
+
+    <section class='posts'>
+      <div class='container'>
+        {
+          sortedPosts.length > 0 ? (
+            <div class='post-grid'>
+              {sortedPosts.map(post => (
+                <BlogCard post={post} />
+              ))}
+            </div>
+          ) : (
+            <div class='no-posts'>
+              <p>No posts found with tag "{tag}".</p>
+            </div>
+          )
+        }
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .post-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .back-link {
+    display: inline-block;
+    margin-top: 1rem;
+    color: #0077cc;
+    text-decoration: none;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+
+  .no-posts {
+    text-align: center;
+    padding: 3rem 0;
+  }
+</style>

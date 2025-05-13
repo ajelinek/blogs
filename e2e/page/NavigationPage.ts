@@ -1,5 +1,7 @@
+import type { Page } from '@playwright/test'
+
 export class NavigationPage {
-  constructor(private page: import('@playwright/test').Page) {}
+  constructor(private page: Page) {}
   async goto() {
     await this.page.goto('/jelly-time/')
   }
