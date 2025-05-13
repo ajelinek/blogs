@@ -1,0 +1,32 @@
+# Node
+node_modules/
+
+# Astro build output
+dist/
+.astro/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env*
+
+# Playwright
+playwright-report/
+.test-results/
+
+# VSCode
+.vscode/
+
+# Mac system files
+.DS_Store
+
+# Others
+*.local 
