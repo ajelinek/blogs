@@ -29,9 +29,9 @@ test('Blog post page displays content and related posts', async ({ page }) => {
   await expect(blogPage.blogPostMeta()).toBeVisible()
   await expect(blogPage.blogPostContent()).toBeVisible()
   await expect(blogPage.readingTime()).toContainText('min read')
-  const tagCount = await blogPage.tagLinks().count()
+  const tagCount = await blogPage.blogPostTags().count()
   expect(tagCount).toBeGreaterThan(0)
-  await expect(blogPage.relatedPosts()).toBeVisible()
+  await expect(blogPage.relatedPostsSection()).toBeVisible()
 })
 
 test('Tag page displays filtered posts', async ({ page }) => {
