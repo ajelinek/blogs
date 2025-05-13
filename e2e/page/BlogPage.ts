@@ -1,81 +1,45 @@
 import type { Page } from '@playwright/test'
 
 export class BlogPage {
-  constructor(private page: Page) {}
+  constructor(readonly page: Page) {}
 
-  async goto() {
+  goto = async () => {
     await this.page.goto('/jelly-time/blog')
   }
 
-  async gotoTag(tag: string) {
+  gotoTag = async (tag: string) => {
     await this.page.goto(`/jelly-time/blog/tag/${tag}`)
   }
 
-  pageHeader() {
-    return this.page.locator('.page-header')
+  pageHeader = () => this.page.getByRole('region', { name: 'Blog Header' })
+  pageTitle = () => this.pageHeader().getByRole('heading', { level: 1 })
+  pageDescription = () => this.pageHeader().getByText('Technical articles and tutorials', { exact: true })
+  tagFilter = () => this.page.getByRole('region', { name: 'Tag Filter' })
+  tagLinks = () => this.tagFilter().getByRole('list').getByRole('link')
+  tagLink = (tag: string) => this.tagFilter().getByRole('link', { name: tag })
+  postsRegion = () => this.page.getByRole('region', { name: 'Blog Posts' })
+  blogCards = () => this.postsRegion().getByRole('article', { name: 'Blog Post' })
+  firstBlogCard = () => this.blogCards().first()
+  blogCardTitle = (card: ReturnType<Page['locator']>) => card.getByRole('heading', { level: 2 })
+  pagination = () => this.page.getByRole('region', { name: 'Pagination' })
+  backLink = () => this.page.getByRole('link', { name: '← Back to all posts' })
+
+  blogPost = () => this.page.getByRole('article', { name: 'Blog Post' })
+  blogPostHeader = () => this.blogPost().getByRole('banner', { name: 'Post Header' }).getByRole('heading', { level: 1 })
+  blogPostMeta = () => this.blogPost().getByRole('banner', { name: 'Post Header' }).getByLabel('Post Meta')
+  blogPostContent = () => this.blogPost().getByLabel('Post Content')
+  readingTime = () => this.blogPostMeta().getByText('min read')
+  relatedPosts = () => this.page.getByRole('region', { name: 'Related Posts' })
+
+  clickFirstBlogPost = async () => {
+    await this.firstBlogCard().getByRole('heading', { level: 2 }).click()
   }
 
-  pageTitle() {
-    return this.pageHeader().locator('h1')
+  clickTagLink = async (tag: string) => {
+    await this.tagLink(tag).click()
   }
 
-  pageDescription() {
-    return this.pageHeader().locator('p')
-  }
-
-  blogCards() {
-    return this.page.locator('article[class*="blogCard"]')
-  }
-
-  firstBlogCard() {
-    return this.blogCards().first()
-  }
-
-  blogCardTitle(card: any) {
-    return card.locator('h2 a')
-  }
-
-  tagLinks() {
-    return this.page.locator('div[class*="tags"] a')
-  }
-
-  tagLink(tag: string) {
-    return this.page.getByText(tag, { exact: true })
-  }
-
-  backLink() {
-    return this.page.locator('.back-link')
-  }
-
-  blogPostContent() {
-    return this.page.locator('div[class*="content"]')
-  }
-
-  blogPostHeader() {
-    return this.page.locator('article header h1').first()
-  }
-
-  blogPostMeta() {
-    return this.page.locator('div[class*="meta"]')
-  }
-
-  readingTime() {
-    return this.page.locator('.reading-time')
-  }
-
-  relatedPosts() {
-    return this.page.locator('.related-posts')
-  }
-
-  async clickFirstBlogPost() {
-    await this.blogCardTitle(this.firstBlogCard()).click()
-  }
-
-  async clickTagLink(tag: string) {
-    await this.tagLink(tag).first().click()
-  }
-
-  async clickBackLink() {
+  clickBackLink = async () => {
     await this.backLink().click()
   }
 }

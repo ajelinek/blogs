@@ -12,7 +12,7 @@ const { title, description, pubDate, author, tags, image } = post.data
 const url = `/jelly-time/blog/${post.slug}`
 ---
 
-<article class={styles.blogCard}>
+<article role='article' aria-label='Blog Post' class={styles.blogCard}>
   <a href={url} class={styles.imageContainer}>
     {image && <img src={image} alt={title} />}
   </a>

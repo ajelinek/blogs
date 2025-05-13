@@ -28,26 +28,28 @@ const readingTime = calculateReadingTime(entry.body)
 ---
 
 <BaseLayout title={`${title} | Blog`}>
-  <main class='blog-post'>
-    <article>
-      <header>
+  <main>
+    <article aria-label='Blog Post' class='blog-post'>
+      <header role='banner' aria-label='Post Header'>
         <div class='container'>
-          <div class='meta'>
+          <div aria-label='Post Meta' class='meta'>
             <span class='date'>{formatDate(pubDate)}</span>
             <span class='reading-time'>{readingTime} min read</span>
           </div>
           <h1>{title}</h1>
           <p class='description'>{description}</p>
           <div class='author'>By {author}</div>
-          <div class='tags'>
+          <ul class='tags' role='list'>
             {
               tags.map((tag: string) => (
-                <a href={`/jelly-time/blog?tag=${tag}`} class='tag'>
-                  {tag}
-                </a>
+                <li role='listitem'>
+                  <a href={`/jelly-time/blog?tag=${tag}`} class='tag'>
+                    {tag}
+                  </a>
+                </li>
               ))
             }
-          </div>
+          </ul>
         </div>
       </header>
 
@@ -61,7 +63,7 @@ const readingTime = calculateReadingTime(entry.body)
         )
       }
 
-      <div class='content'>
+      <div aria-label='Post Content' class='content'>
         <div class='container'>
           <Content />
         </div>
@@ -70,7 +72,7 @@ const readingTime = calculateReadingTime(entry.body)
 
     {
       relatedPosts.length > 0 && (
-        <section class='related-posts'>
+        <section aria-label='Related Posts' class='related-posts'>
           <div class='container'>
             <h2>Related Posts</h2>
             <div class='related-grid'>
@@ -128,6 +130,9 @@ const readingTime = calculateReadingTime(entry.body)
     flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 2rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
   }
 
   .tag {

@@ -35,23 +35,25 @@ const tagDescription = tagDescriptions[tag] || `Articles tagged with ${tag}`
 
 <BaseLayout title={`${tag} | Blog`}>
   <main>
-    <section class='page-header'>
+    <section aria-label='Blog Header' class='page-header'>
       <div class='container'>
         <h1>{tag}</h1>
+        <p>Technical articles and tutorials</p>
         <p>{tagDescription}</p>
-        <a href='/jelly-time/blog' class='back-link'>← Back to all posts</a>
+        <a href='/jelly-time/blog' class='back-link' aria-label='Back to all posts'>← Back to all posts</a>
       </div>
     </section>
-
-    <section class='posts'>
+    <section aria-label='Tag Posts' class='posts'>
       <div class='container'>
         {
           sortedPosts.length > 0 ? (
-            <div class='post-grid'>
+            <ul class='post-grid' role='list'>
               {sortedPosts.map(post => (
-                <BlogCard post={post} />
+                <li role='listitem'>
+                  <BlogCard post={post} />
+                </li>
               ))}
-            </div>
+            </ul>
           ) : (
             <div class='no-posts'>
               <p>No posts found with tag "{tag}".</p>
@@ -68,6 +70,9 @@ const tagDescription = tagDescriptions[tag] || `Articles tagged with ${tag}`
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 2rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
   }
 
   .back-link {

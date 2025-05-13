@@ -25,29 +25,31 @@ const filteredPosts = tag ? sortedPosts.filter(post => post.data.tags.includes(t
 
 <BaseLayout title={tag ? `${tag} Posts | Blog` : 'Blog | Articles and Tutorials'}>
   <main>
-    <section class='page-header'>
+    <section aria-label='Blog Header' class='page-header'>
       <div class='container'>
         <h1>{tag ? `Posts tagged with "${tag}"` : 'Blog Posts'}</h1>
         <p>Technical articles and tutorials</p>
       </div>
     </section>
 
-    <section class='tag-filter'>
+    <section aria-label='Tag Filter' class='tag-filter'>
       <div class='container'>
-        <div class='tags'>
-          <a href='/jelly-time/blog' class={!tag ? 'active' : ''}>All</a>
+        <ul class='tags' role='list'>
+          <li role='listitem'><a href='/jelly-time/blog' class={!tag ? 'active' : ''}>All</a></li>
           {
             allTags.map(tagName => (
-              <a href={`/jelly-time/blog?tag=${tagName}`} class={tag === tagName ? 'active' : ''}>
-                {tagName}
-              </a>
+              <li role='listitem'>
+                <a href={`/jelly-time/blog?tag=${tagName}`} class={tag === tagName ? 'active' : ''}>
+                  {tagName}
+                </a>
+              </li>
             ))
           }
-        </div>
+        </ul>
       </div>
     </section>
 
-    <section class='posts'>
+    <section aria-label='Blog Posts' class='posts'>
       <div class='container'>
         {
           filteredPosts.length > 0 ? (
@@ -67,7 +69,7 @@ const filteredPosts = tag ? sortedPosts.filter(post => post.data.tags.includes(t
 
     {
       !tag && totalPages > 1 && (
-        <section class='pagination'>
+        <section aria-label='Pagination' class='pagination'>
           <div class='container'>
             <div class='pagination-controls'>
               <a href={`/jelly-time/blog?page=${Math.max(1, page - 1)}`} class={page <= 1 ? 'disabled' : ''}>
@@ -104,6 +106,9 @@ const filteredPosts = tag ? sortedPosts.filter(post => post.data.tags.includes(t
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
   }
 
   .tags a {
