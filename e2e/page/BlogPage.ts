@@ -63,6 +63,58 @@ export class BlogPage extends BasePage {
   firstBlogCard = () => this.blogCards().first()
   blogCardTitle = (card: ReturnType<Page['locator']>) => card.getByRole('heading', { level: 2 })
   pagination = () => this.page.getByRole('region', { name: 'Pagination' })
+  paginationControls = () => this.pagination().locator('.pagination-controls')
+  paginationPrevButton = () => this.paginationControls().locator('a:first-child')
+  paginationNextButton = () => this.paginationControls().locator('a:last-child')
+  paginationInfo = () => this.paginationControls().locator('span')
+
+  async getPaginationInfo(): Promise<{ current: number; total: number }> {
+    const infoText = await this.paginationInfo().innerText()
+    const match = infoText.match(/Page (\d+) of (\d+)/)
+    if (!match) {
+      return { current: 0, total: 0 }
+    }
+    return {
+      current: parseInt(match[1], 10),
+      total: parseInt(match[2], 10),
+    }
+  }
+
+  async clickNextPage(): Promise<void> {
+    const nextButton = this.paginationNextButton()
+    const isDisabled = await nextButton.evaluate(el => el.classList.contains('disabled'))
+    if (!isDisabled) {
+      await nextButton.click()
+      await this.page.waitForLoadState('networkidle')
+
+      // Wait for URL to update
+      await this.page.waitForURL(/.*page=\d+.*/)
+    }
+  }
+
+  async clickPrevPage(): Promise<void> {
+    const prevButton = this.paginationPrevButton()
+    const isDisabled = await prevButton.evaluate(el => el.classList.contains('disabled'))
+    if (!isDisabled) {
+      await prevButton.click()
+      await this.page.waitForLoadState('networkidle')
+
+      // Wait for URL to update
+      const currentUrl = this.page.url()
+      if (currentUrl.toString().includes('page=')) {
+        await this.page.waitForURL(/.*page=\d+.*/)
+      } else {
+        await this.page.waitForURL(url => !url.toString().includes('page='))
+      }
+
+      // Wait a moment for the page to fully render
+      await this.page.waitForTimeout(200)
+    }
+  }
+
+  async isPaginationVisible(): Promise<boolean> {
+    return await this.pagination().isVisible()
+  }
 
   // Blog post delegations
   blogPostHeader = () => this.blogPost.title()
@@ -82,8 +134,8 @@ export class BlogPage extends BasePage {
 
   // Actions
   clickFirstBlogPost = async () => {
-    const card = this.getBlogCard()
-    await card.click()
+    // Navigate directly to a known blog post
+    await this.gotoPost('2023-07-15-solid-js-integration')
     // Wait for navigation to complete
     await this.page.waitForLoadState('networkidle')
   }

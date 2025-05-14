@@ -5,7 +5,7 @@ export class BlogPostComponent {
 
   // Locators
   article = () => this.page.getByRole('article', { name: 'Blog Post' })
-  header = () => this.article().locator('header')
+  header = () => this.article().locator('header[role="banner"]')
   title = () => this.header().locator('h1')
   meta = () => this.header().locator('.meta')
   readingTime = () => this.meta().locator('.reading-time')

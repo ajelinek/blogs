@@ -26,9 +26,9 @@ test('navigation should be keyboard accessible', async ({ page }) => {
   await expect(navigation.navLink('Blog')).toBeFocused()
   await page.keyboard.press('Tab')
   await expect(navigation.navLink('Presentations')).toBeFocused()
+
   await page.keyboard.press('Enter')
-  await page.waitForNavigation()
-  await expect(await navigation.title()).toContain('Presentations | Tech Talks and Slides')
+  await expect(page).toHaveTitle(/Presentations \| Tech Talks and Slides/)
 })
 
 test('responsive layout shows navigation on mobile', async ({ page }) => {

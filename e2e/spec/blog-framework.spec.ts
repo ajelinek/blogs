@@ -17,10 +17,71 @@ async function setUpBlogPost(page: Page, slug: string = '2023-07-15-solid-js-int
 
 test.skip('Blog pagination works correctly', async ({ page }) => {
   const { blogPage } = await setUp(page)
-  // Test pagination functionality
-  // - Verify correct number of posts per page
-  // - Navigate between pages and confirm correct posts are shown
-  // - Check that pagination controls update URL correctly
+
+  // Check if pagination is visible
+  const isPaginationVisible = await blogPage.isPaginationVisible()
+  expect(isPaginationVisible).toBe(true)
+
+  // Get initial pagination info
+  const initialPagination = await blogPage.getPaginationInfo()
+  expect(initialPagination.current).toBe(1)
+  expect(initialPagination.total).toBeGreaterThan(1)
+
+  // Verify correct number of posts per page (3 posts per page as defined in blog.astro)
+  const postsPerPage = 3
+  expect(await blogPage.blogCards().count()).toBeLessThanOrEqual(postsPerPage)
+
+  // Get the titles of posts on the first page
+  const firstPageTitles: string[] = []
+  const firstPagePostsCount = await blogPage.blogCards().count()
+  for (let i = 0; i < firstPagePostsCount; i++) {
+    const card = blogPage.getBlogCard(i)
+    const title = await card.getTitle()
+    firstPageTitles.push(title)
+  }
+
+  // Navigate to second page
+  await blogPage.clickNextPage()
+
+  // Verify URL contains page=2
+  expect(page.url()).toContain('page=2')
+
+  // Wait for the page to load
+  await page.waitForLoadState('networkidle')
+
+  // Get the titles of posts on the second page
+  const secondPageTitles: string[] = []
+  const secondPagePostsCount = await blogPage.blogCards().count()
+  for (let i = 0; i < secondPagePostsCount; i++) {
+    const card = blogPage.getBlogCard(i)
+    const title = await card.getTitle()
+    secondPageTitles.push(title)
+  }
+
+  // Verify posts on second page are different from first page
+  const hasOverlap = secondPageTitles.some(title => firstPageTitles.includes(title))
+  expect(hasOverlap).toBe(false)
+
+  // Navigate back to first page
+  await blogPage.clickPrevPage()
+
+  // Verify URL is back to page=1 or no page parameter
+  expect(page.url()).not.toContain('page=2')
+
+  // Wait for the page to load
+  await page.waitForLoadState('networkidle')
+
+  // Verify we can see the first page posts again
+  const finalPageTitles: string[] = []
+  const finalPagePostsCount = await blogPage.blogCards().count()
+  for (let i = 0; i < finalPagePostsCount; i++) {
+    const card = blogPage.getBlogCard(i)
+    const title = await card.getTitle()
+    finalPageTitles.push(title)
+  }
+
+  // Verify we're seeing the same posts as on the first page
+  expect(finalPageTitles).toEqual(firstPageTitles)
 })
 
 test('Blog post reading time is calculated correctly', async ({ page }) => {

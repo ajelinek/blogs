@@ -1,1 +1,2 @@
-// Export foundation components here 
+// Export foundation components
+// This is a placeholder for future foundation components

@@ -1,0 +1,29 @@
+/* Tag Filter */
+.tagFilter {
+  margin-bottom: 2rem;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tag {
+  background-color: #f0f0f0;
+  color: #666;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.tag:hover,
+.tag.active {
+  background-color: #0077cc;
+  color: white;
+}

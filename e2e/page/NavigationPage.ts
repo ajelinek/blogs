@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import { expect } from '@playwright/test'
 
 export class NavigationPage {
   constructor(private page: Page) {}
@@ -10,6 +11,7 @@ export class NavigationPage {
   }
   async goTo(name: string) {
     await this.navLink(name).click()
+    await expect(this.page).toHaveTitle(new RegExp(`${name} \\|`))
   }
   async title() {
     return this.page.title()

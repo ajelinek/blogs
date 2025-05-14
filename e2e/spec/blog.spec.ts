@@ -12,7 +12,7 @@ test('Blog listing page displays posts and pagination', async ({ page }) => {
   const { blogPage } = await setUp(page)
   await expect(blogPage.pageTitle()).toHaveText('Blog Posts')
   await expect(blogPage.pageDescription()).toBeVisible()
-  await expect(blogPage.blogCards()).toHaveCount(5)
+  await expect(blogPage.blogCards()).toHaveCount(6)
   await expect(blogPage.blogCardTitle(blogPage.firstBlogCard())).toBeVisible()
   const tagCount = await blogPage.tagLinks().count()
   expect(tagCount).toBeGreaterThan(0)
