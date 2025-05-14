@@ -4,9 +4,65 @@ import '../styles/global.css'
 
 interface Props {
   title: string
+  description?: string
+  image?: string
+  type?: 'website' | 'article'
+  canonicalUrl?: string
+  article?: {
+    publishedTime?: Date | string
+    modifiedTime?: Date | string
+    author?: string
+    tags?: string[]
+  }
 }
 
-const { title } = Astro.props
+const {
+  title,
+  description = 'Blog & Presentations - A collection of articles and presentations about web development',
+  image = '/images/default-social.jpg',
+  type = 'website',
+  canonicalUrl = Astro.url.href,
+  article,
+} = Astro.props
+
+// Helper function to safely format dates
+function formatDateForMetadata(date: Date | string | undefined): string | undefined {
+  if (!date) return undefined
+
+  try {
+    if (typeof date === 'string') {
+      return new Date(date).toISOString()
+    }
+    return date.toISOString()
+  } catch (error) {
+    console.error('Invalid date format:', date)
+    return undefined
+  }
+}
+
+// Prepare structured data
+const structuredData =
+  type === 'article'
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: title,
+        description: description,
+        image: image,
+        datePublished: formatDateForMetadata(article?.publishedTime),
+        dateModified: formatDateForMetadata(article?.modifiedTime) || formatDateForMetadata(article?.publishedTime),
+        author: {
+          '@type': 'Person',
+          name: article?.author || 'Author',
+        },
+      }
+    : {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: title,
+        description: description,
+        url: canonicalUrl,
+      }
 ---
 
 <!doctype html>
@@ -17,6 +73,40 @@ const { title } = Astro.props
     <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
     <meta name='generator' content={Astro.generator} />
     <title>{title}</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name='description' content={description} />
+    <link rel='canonical' href={canonicalUrl} />
+
+    <!-- Open Graph / Facebook -->
+    <meta property='og:type' content={type} />
+    <meta property='og:title' content={title} />
+    <meta property='og:description' content={description} />
+    <meta property='og:image' content={new URL(image, Astro.url)} />
+    <meta property='og:url' content={canonicalUrl} />
+
+    <!-- Twitter -->
+    <meta name='twitter:card' content='summary_large_image' />
+    <meta name='twitter:title' content={title} />
+    <meta name='twitter:description' content={description} />
+    <meta name='twitter:image' content={new URL(image, Astro.url)} />
+
+    <!-- Article specific meta tags -->
+    {
+      article?.publishedTime && (
+        <meta property='article:published_time' content={formatDateForMetadata(article.publishedTime)} />
+      )
+    }
+    {
+      article?.modifiedTime && (
+        <meta property='article:modified_time' content={formatDateForMetadata(article.modifiedTime)} />
+      )
+    }
+    {article?.author && <meta property='article:author' content={article.author} />}
+    {article?.tags && article.tags.map(tag => <meta property='article:tag' content={tag} />)}
+
+    <!-- Structured Data -->
+    <script type='application/ld+json' set:html={JSON.stringify(structuredData)} />
   </head>
   <body>
     <div class='site-wrapper'>
@@ -30,4 +120,3 @@ const { title } = Astro.props
     </div>
   </body>
 </html>
-

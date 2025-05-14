@@ -1,12 +1,22 @@
 /**
  * Format a date to a readable string
  */
-export function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(date)
+export function formatDate(date: Date | string | undefined): string {
+  if (!date) {
+    return 'No date'
+  }
+
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(dateObj)
+  } catch (error) {
+    console.error('Invalid date format:', date)
+    return 'Invalid date'
+  }
 }
 
 /**

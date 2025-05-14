@@ -1,33 +1,55 @@
 ---
 import { getCollection, getEntry } from 'astro:content'
+import type { CollectionEntry } from 'astro:content'
 import BaseLayout from '../../layouts/BaseLayout.astro'
 import { formatDate, calculateReadingTime } from '../../store/utilities/dateUtils'
 
+// Define the correct type for blog entries
+interface BlogEntry extends CollectionEntry<'blog'> {
+  slug: string
+  body: string
+  render(): Promise<{ Content: any }>
+}
+
 export async function getStaticPaths() {
-  const blogEntries = await getCollection('blog')
+  const blogEntries = (await getCollection('blog')) as BlogEntry[]
   return blogEntries.map(entry => ({
     params: { slug: entry.slug },
     props: { entry },
   }))
 }
 
-const { entry } = Astro.props
+const { entry } = Astro.props as { entry: BlogEntry }
 const { Content } = await entry.render()
 
 const { title, description, pubDate, author, tags, image } = entry.data
 
 // Get related posts (posts with at least one matching tag)
-const allPosts = await getCollection('blog')
+const allPosts = (await getCollection('blog')) as BlogEntry[]
 const relatedPosts = allPosts
   .filter(post => post.slug !== entry.slug && post.data.tags.some((tag: string) => tags.includes(tag)))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
   .slice(0, 3)
 
 // Calculate reading time
-const readingTime = calculateReadingTime(entry.body)
+const readingTime = calculateReadingTime(entry.body || '')
+
+// Prepare URL for canonical and OG tags
+const canonicalUrl = new URL(`/jelly-time/blog/${entry.slug}`, Astro.url.origin).href
 ---
 
-<BaseLayout title={`${title} | Blog`}>
+<BaseLayout
+  title={`${title} | Blog`}
+  description={description}
+  image={image}
+  type='article'
+  canonicalUrl={canonicalUrl}
+  article={{
+    publishedTime: pubDate,
+    author: author,
+    tags: tags,
+  }}
+>
   <main>
     <article aria-label='Blog Post' class='blog-post'>
       <header role='banner' aria-label='Post Header'>

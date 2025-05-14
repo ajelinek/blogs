@@ -1,4 +1,5 @@
 // Page Objects
+export { BasePage } from './BasePage'
 export { BlogPage } from './BlogPage'
 export { BlogTagPage } from './BlogTagPage'
 export { BlogPostPage } from './BlogPostPage'

@@ -4,14 +4,16 @@ import { PageHeaderComponent } from './components/PageHeaderComponent'
 import { TagFilterComponent } from './components/TagFilterComponent'
 import { BlogPostComponent } from './components/BlogPostComponent'
 import { RelatedPostsComponent } from './components/RelatedPostsComponent'
+import { BasePage } from './BasePage'
 
-export class BlogPage {
+export class BlogPage extends BasePage {
   readonly header: PageHeaderComponent
   readonly tagFilter: TagFilterComponent
   readonly blogPost: BlogPostComponent
   readonly relatedPosts: RelatedPostsComponent
 
   constructor(readonly page: Page) {
+    super(page)
     this.header = new PageHeaderComponent(page)
     this.tagFilter = new TagFilterComponent(page)
     this.blogPost = new BlogPostComponent(page)

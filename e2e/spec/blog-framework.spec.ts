@@ -1,11 +1,18 @@
 import { test, expect } from '@playwright/test'
 import type { Page } from '@playwright/test'
 import { BlogPage } from '../page/BlogPage'
+import { BlogPostPage } from '../page/BlogPostPage'
 
 async function setUp(page: Page) {
   const blogPage = new BlogPage(page)
   await blogPage.goto()
   return { blogPage }
+}
+
+async function setUpBlogPost(page: Page, slug: string = '2023-07-15-solid-js-integration') {
+  const blogPostPage = new BlogPostPage(page)
+  await blogPostPage.gotoPost(slug)
+  return { blogPostPage }
 }
 
 test.skip('Blog pagination works correctly', async ({ page }) => {
@@ -22,13 +29,43 @@ test.skip('Blog post reading time is calculated correctly', async ({ page }) => 
   // - this is done in via a library and the build so we just need to verify we are displaying it.
 })
 
-test.skip('Blog post SEO meta tags are present', async ({ page }) => {
-  const { blogPage } = await setUp(page)
+test('Blog post SEO meta tags are present', async ({ page }) => {
+  const { blogPostPage } = await setUpBlogPost(page)
 
-  // Test SEO meta tags
-  // - Verify title, description, canonical URL meta tags
-  // - Check Open Graph and Twitter card meta tags
-  // - Verify structured data for blog posts
+  // Verify title, description, canonical URL meta tags
+  expect(await blogPostPage.getPageTitle()).not.toBe('')
+  expect(await blogPostPage.hasMetaTag('meta[name="description"]')).toBe(true)
+  expect(await blogPostPage.hasMetaTag('link[rel="canonical"]')).toBe(true)
+
+  // Check Open Graph meta tags
+  expect(await blogPostPage.hasMetaTag('meta[property="og:title"]')).toBe(true)
+  expect(await blogPostPage.hasMetaTag('meta[property="og:description"]')).toBe(true)
+  expect(await blogPostPage.hasMetaTag('meta[property="og:image"]')).toBe(true)
+  expect(await blogPostPage.hasMetaTag('meta[property="og:url"]')).toBe(true)
+  expect(await blogPostPage.hasMetaTag('meta[property="og:type"]')).toBe(true)
+
+  // Check Twitter card meta tags
+  expect(await blogPostPage.hasMetaTag('meta[name="twitter:card"]')).toBe(true)
+  expect(await blogPostPage.hasMetaTag('meta[name="twitter:title"]')).toBe(true)
+  expect(await blogPostPage.hasMetaTag('meta[name="twitter:description"]')).toBe(true)
+  expect(await blogPostPage.hasMetaTag('meta[name="twitter:image"]')).toBe(true)
+
+  // Verify structured data for blog posts
+  expect(await blogPostPage.hasMetaTag('script[type="application/ld+json"]')).toBe(true)
+
+  // Verify content of meta tags matches expected values
+  const pageTitle = await blogPostPage.getPostTitle()
+  const metaTitle = await blogPostPage.getPageTitle()
+  expect(metaTitle).toContain(pageTitle)
+
+  // Check canonical URL contains current page URL
+  const canonicalUrl = await blogPostPage.getCanonicalHref()
+  expect(canonicalUrl).not.toBe('')
+
+  // Check structured data has correct type
+  const structuredDataContent = await blogPostPage.getStructuredDataContent()
+  const jsonLd = JSON.parse(structuredDataContent)
+  expect(jsonLd['@type']).toBe('BlogPosting')
 })
 
 test.skip('Related posts are relevant to current post', async ({ page }) => {
