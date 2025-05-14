@@ -21,7 +21,7 @@
     "reading-time": "^1.5.0",
     "sharp": "^0.34.1",
     "solid-js": "^1.8.15",
-    "zod": "^3.22.4"
+    "zod": "4.0.0-beta.20250505T195954"
   },
   "devDependencies": {
     "@playwright/test": "^1.42.1",
