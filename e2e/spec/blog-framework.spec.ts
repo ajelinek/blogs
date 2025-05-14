@@ -23,10 +23,10 @@ test.skip('Blog pagination works correctly', async ({ page }) => {
   // - Check that pagination controls update URL correctly
 })
 
-test.skip('Blog post reading time is calculated correctly', async ({ page }) => {
-  const { blogPage } = await setUp(page)
-  // - verify that the reading time is displayed and calculated
-  // - this is done in via a library and the build so we just need to verify we are displaying it.
+test('Blog post reading time is calculated correctly', async ({ page }) => {
+  const { blogPostPage } = await setUpBlogPost(page)
+  const readingTime = await blogPostPage.getReadingTime()
+  expect(readingTime).toMatch(/^\d+ min read$/)
 })
 
 test('Blog post SEO meta tags are present', async ({ page }) => {
