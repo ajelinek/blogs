@@ -27,6 +27,10 @@ export class BlogPage {
     await this.page.goto(`/jelly-time/blog/tag/${tag}`)
   }
 
+  gotoPost = async (slug: string) => {
+    await this.page.goto(`/jelly-time/blog/${slug}`)
+  }
+
   // Page header delegations
   pageTitle = () => this.header.title()
   pageDescription = () => this.header.description()
@@ -64,6 +68,12 @@ export class BlogPage {
   blogPostContent = () => this.blogPost.content()
   readingTime = () => this.blogPost.readingTime()
   blogPostTags = () => this.blogPost.tags()
+
+  // Mermaid diagram delegations
+  mermaidDiagrams = () => this.blogPost.mermaidDiagrams()
+  mermaidSvgs = () => this.blogPost.mermaidSvgs()
+  getMermaidDiagramsCount = async () => await this.blogPost.getMermaidDiagramsCount()
+  getMermaidSvgsCount = async () => await this.blogPost.getMermaidSvgsCount()
 
   // Add a method to get related posts section for backward compatibility
   relatedPostsSection = () => this.relatedPosts.section()

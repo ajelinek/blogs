@@ -3,32 +3,78 @@
 ## Core Concepts
 
 - Each Markdown file (`.md` or `.mdx`) is a single presentation, with top-level frontmatter for metadata (title, description, author, etc.).
-- Slides are separated by `---` (Marp-style); no per-slide frontmatter or titles are required.
-- Slide content is pure Markdown, supporting text, images, code, and custom child presentation references (e.g., `[[child:filename.md|Title]]`).
+- Slides and nested slides are defined using HTML comment blocks: `<!-- slide-start [metadata] -->` and `<!-- slide-end -->`.
+- Optional metadata (e.g., `title`, `transition`, `hidden`) can be included in the `slide-start` comment.
+- **Reusable slides:** If a slide block contains only a single Markdown link to a `.md` file, it is treated as a slide include (reusable/template slide). The referenced file's slide(s) are inlined at that point in the navigation tree. If there is any other content in the block, the link is treated as a regular link.
+- Slide content is pure Markdown, supporting text, images, code, and custom child presentation references.
 - Images are referenced using standard Markdown and placed in a subdirectory relative to the Markdown file; Astro optimizes these images.
 - Mermaid diagrams are included as code blocks and pre-rendered to images at build time; no client-side Mermaid JS is used.
-- The folder structure is for organization; navigation and hierarchy are defined by content and references in the Markdown.
+- The folder structure is for organization; navigation and hierarchy are defined by the slide block structure in the Markdown.
 
 ## Authoring & Content Structure
 
-- Write presentations as Markdown files, using `---` to separate slides.
-- Use standard Markdown for images and fenced code blocks for Mermaid diagrams.
-- Reference child presentations with a custom syntax inside slides.
+- Write presentations as Markdown files, using `<!-- slide-start ... -->` and `<!-- slide-end -->` to mark slides and their nesting.
+- Use optional metadata in the `slide-start` comment for advanced features:
+  - `title`: Optional display title for navigation or overview
+  - `transition`: Custom transition/animation for the slide
+  - `hidden`: Hide slide from navigation/overview
+- **Reusable Slide Pattern:**
+  - If a slide block contains only a single Markdown link to a `.md` file (e.g., `[](./reusable.md)`), the parser inlines the referenced file's slide(s) at that point.
+  - If there is any other content in the block, the link is treated as a regular link.
+- Examples:
+
+  <!-- slide-start -->
+
+  [](./reusable.md)
+  <!-- slide-end -->
+
+  <!-- slide-start -->
+
+  See more details in [Reusable Slide](./reusable.md).
+  <!-- slide-end -->
+
+  <!-- slide-start -->
+
+  # Slide 1
+
+  Welcome!
+  <!-- slide-end -->
+
+  <!-- slide-start -->
+
+  [](./slide2.md)
+  <!-- slide-end -->
+
+  <!-- slide-start -->
+
+  # Parent Slide
+
+  Intro content
+  <!-- slide-start -->
+
+  [](./child.md)
+  <!-- slide-end -->
+  <!-- slide-end -->
+
+- Arbitrary nesting is supported by nesting slide blocks and by including reusable slides anywhere in the tree.
 - Only one frontmatter block is needed per file for presentation-level metadata.
 
 ## Build & Parsing Process
 
 - A custom parser processes each Markdown file at build time:
-  - Extracts frontmatter for metadata.
-  - Splits content into slides using `---`.
+  - Scans for `slide-start` and `slide-end` comment blocks to build a tree of slides and sub-slides.
+  - Extracts optional metadata from the `slide-start` comment.
+  - **If a slide block contains only a single Markdown link to a `.md` file, the referenced file's slide(s) are inlined at that point.**
+  - Slide `id`s and page numbers are **generated automatically** during parsing; authors do not specify them.
+  - Splits content into slides and sub-slides based on block structure.
   - Detects and pre-renders Mermaid code blocks to images, saving them to a build directory (e.g., `public/generated-mermaid/`), which is gitignored.
   - Updates slide content to reference generated images.
   - Resolves image paths and optimizes images via Astro.
-  - Detects custom child references and builds a navigation tree.
-- Outputs a structured data format (e.g., JSON or JS object) with:
-  - Slide content (with images and diagrams)
-  - Navigation tree (parent/child relationships)
-  - Presentation metadata
+  - Outputs a structured data format (e.g., JSON or JS object) with:
+    - Slide content (with images and diagrams)
+    - Navigation tree (parent/child relationships)
+    - Presentation metadata
+    - Auto-generated slide ids and page numbers for navigation and deep-linking
 
 ## Astro Integration & Page Generation
 
@@ -37,6 +83,7 @@
   - Current slide content (Markdown, images, pre-rendered diagrams)
   - Navigation context (previous/next slide, parent, children)
   - Presentation metadata for display and SEO
+  - Slide metadata (title, transition, hidden, etc.)
 - Dynamic routes are generated for deep linking and navigation.
 - Breadcrumbs, overview, and drill-down navigation are built from the navigation tree.
 
@@ -45,10 +92,53 @@
 - All generated Mermaid images are output to a dedicated build directory and excluded from version control via `.gitignore`.
 - Only source Markdown, images, and code are committed; all build artifacts are excluded.
 
+## Example Slide Structure
+
+```markdown
+<!-- slide-start -->
+
+[](./reusable.md)
+
+<!-- slide-end -->
+
+<!-- slide-start -->
+
+# Slide 1
+
+Welcome!
+
+<!-- slide-end -->
+
+<!-- slide-start -->
+
+[](./slide2.md)
+
+<!-- slide-end -->
+
+<!-- slide-start -->
+
+# Parent Slide
+
+Intro content
+
+<!-- slide-start -->
+
+[](./child.md)
+
+<!-- slide-end -->
+<!-- slide-end -->
+```
+
+- Nesting is achieved by placing `slide-start`/`slide-end` blocks inside parent slides and by including reusable slides.
+- Metadata is optional and can be used for advanced features.
+- Slide ids and page numbers are generated automatically during parsing.
+
 ## Summary
 
-- Authoring is simple: one Markdown file per presentation, slides separated by `---`, standard Markdown for images, and code blocks for diagrams.
-- The build process parses, pre-renders diagrams, optimizes images, and generates navigation and static pages.
+- Authoring is simple: use `slide-start`/`slide-end` blocks to define slides and nesting, with optional metadata for advanced features.
+- Use the reusable slide pattern to include slides from other files anywhere in the tree.
+- The build process parses, pre-renders diagrams, optimizes images, generates navigation, and static pages.
+- Slide ids and page numbers are always generated in the build process, not authored.
 - The result is a fast, scalable, and maintainable presentation system with minimal client-side dependencies.
 
 ## Slide Content and Metadata

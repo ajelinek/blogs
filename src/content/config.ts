@@ -1,17 +1,38 @@
-import { z, defineCollection } from 'astro:content'
+import { defineCollection, z } from 'astro:content'
 
+// Define the blog post schema
 const blogCollection = defineCollection({
-  type: 'content',
   schema: z.object({
     title: z.string(),
     description: z.string(),
-    pubDate: z.date(),
+    pubDate: z.string().transform(str => new Date(str)),
     author: z.string(),
     tags: z.array(z.string()),
-    image: z.string().optional(),
+    // Optional field to mark content as test-only
+    testOnly: z.boolean().optional().default(false),
   }),
 })
 
-export const collections = {
+// Filter test content in production but include it in development
+const collections = {
   blog: blogCollection,
 }
+
+// Export a function that filters out test content in production
+export const getFilteredCollections = () => {
+  // In production, filter out test content
+  if (import.meta.env.PROD) {
+    return {
+      blog: {
+        ...collections.blog,
+        filter: (entry: any) => !entry.data.testOnly,
+      },
+    }
+  }
+
+  // In development, include all content
+  return collections
+}
+
+// Export collections for Astro
+export const { blog } = getFilteredCollections()

@@ -16,6 +16,10 @@ export class BlogPostComponent {
   content = () => this.article().getByLabel('Post Content')
   featuredImage = () => this.article().locator('.featured-image img')
 
+  // Mermaid diagram locators
+  mermaidDiagrams = () => this.content().locator('.mermaid')
+  mermaidSvgs = () => this.content().locator('.mermaid svg')
+
   // Helper methods
   async getTitle(): Promise<string> {
     return (await this.title().textContent()) || ''
@@ -27,6 +31,14 @@ export class BlogPostComponent {
 
   async getTagsCount(): Promise<number> {
     return await this.tags().count()
+  }
+
+  async getMermaidDiagramsCount(): Promise<number> {
+    return await this.mermaidDiagrams().count()
+  }
+
+  async getMermaidSvgsCount(): Promise<number> {
+    return await this.mermaidSvgs().count()
   }
 
   // Actions
