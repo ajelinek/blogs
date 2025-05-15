@@ -1,33 +1,34 @@
+import type { JSX } from 'solid-js'
 import { For } from 'solid-js'
 import styles from './styles.module.css'
+import { useQueryParam, useQueryParams, QUERY_PARAM_IDS } from '../../../utilities/queryParam'
 
 type TagFilterProps = {
   tags: string[]
   selectedTag: string | null
-  basePath?: string
   currentPage?: number
 }
 
 export function TagFilter(props: TagFilterProps) {
-  // Don't destructure props to maintain reactivity
+  const tagParams = useQueryParams(QUERY_PARAM_IDS.TAG)
+  const pageParam = useQueryParam(QUERY_PARAM_IDS.PAGE)
 
-  // Generate URL for a tag
-  const getTagUrl = (tag: string | null) => {
-    let url = `${props.basePath}/blog`
-    const params = []
-
-    if (tag) {
-      params.push(`tag=${tag}`)
-    }
-
+  // For 'All', remove all tags and reset page if needed
+  const allHref = () => {
+    let url = tagParams.previewRemoveParams(tagParams.getParams())
     if (props.currentPage && props.currentPage > 1) {
-      params.push(`page=${props.currentPage}`)
+      url = pageParam.previewRemoveParam()
     }
+    return url
+  }
 
-    if (params.length > 0) {
-      url += `?${params.join('&')}`
+  // For each tag, set only that tag and reset page if needed
+  const tagHref = (tag: string) => {
+    let url = tagParams.previewRemoveParams(tagParams.getParams())
+    url = tagParams.previewAddParam(tag)
+    if (props.currentPage && props.currentPage > 1) {
+      url = pageParam.previewRemoveParam()
     }
-
     return url
   }
 
@@ -36,7 +37,7 @@ export function TagFilter(props: TagFilterProps) {
       <ul class={styles.tagList} role='list'>
         <li role='listitem'>
           <a
-            href={getTagUrl(null)}
+            href={allHref()}
             class={!props.selectedTag ? `${styles.tag} ${styles.active}` : styles.tag}
             aria-current={!props.selectedTag ? 'true' : undefined}
             data-testid='tag-all'>
@@ -47,7 +48,7 @@ export function TagFilter(props: TagFilterProps) {
           {(tag: string) => (
             <li role='listitem'>
               <a
-                href={getTagUrl(tag)}
+                href={tagHref(tag)}
                 class={props.selectedTag === tag ? `${styles.tag} ${styles.active}` : styles.tag}
                 aria-current={props.selectedTag === tag ? 'true' : undefined}
                 data-testid={`tag-${tag}`}>
