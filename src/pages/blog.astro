@@ -23,7 +23,7 @@ const sortedPosts = allPosts
     </section>
 
     <div class='container'>
-      <BlogListing posts={sortedPosts} postsPerPage={6} client:load />
+      <BlogListing posts={sortedPosts} postsPerPage={6} client:only='solid-js' />
     </div>
   </main>
 </BaseLayout>

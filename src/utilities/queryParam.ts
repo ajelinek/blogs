@@ -1,4 +1,5 @@
 import { useUrlSearchParams } from 'solidjs-use'
+import { createMemo } from 'solid-js'
 
 // Define parameter IDs
 export const QUERY_PARAM_IDS = {
@@ -10,44 +11,58 @@ export const QUERY_PARAM_IDS = {
 export type QueryParamId = typeof QUERY_PARAM_IDS.PAGE // Single value params
 export type QueryParamsId = typeof QUERY_PARAM_IDS.TAG // Multiple value params
 
+type ParamsObject = Record<string, string | string[] | undefined>
+
 /**
  * Hook for managing a single query parameter
  * @param id The query parameter ID to manage (single value)
  */
 export function useQueryParam(id: QueryParamId) {
-  const params = useUrlSearchParams('history')
+  const [params, setParams] = useUrlSearchParams('history')
 
   const getParam = () => {
-    const v = params[id]
+    const v = params()[id]
     return v == null ? null : Array.isArray(v) ? (v[0] ?? null) : v
   }
 
   const setParam = (value: string | null) => {
-    if (value == null) delete params[id]
-    else params[id] = value
+    if (value === null) {
+      setParams({ [id]: '' }) // Empty string will remove the parameter
+    } else {
+      setParams({ [id]: value })
+    }
   }
 
   const removeParam = () => {
-    delete params[id]
+    setParams({ [id]: '' }) // Empty string will remove the parameter
   }
 
   const toggleParam = (value: string) => {
     getParam() === value ? removeParam() : setParam(value)
   }
 
-  // --- Preview helpers ---
-  function previewSetParam(value: string | null): string {
+  const previewSetParam = (value: string | null) => {
     const url = new URL(window.location.href)
-    if (value == null) url.searchParams.delete(id)
-    else url.searchParams.set(id, value)
-    return url.pathname + (url.search ? url.search : '')
+    const searchParams = new URLSearchParams(url.search)
+
+    searchParams.delete(id)
+    if (value !== null) {
+      searchParams.append(id, value)
+    }
+
+    return url.pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')
   }
 
-  function previewRemoveParam(): string {
-    return previewSetParam(null)
+  const previewRemoveParam = () => {
+    const url = new URL(window.location.href)
+    const searchParams = new URLSearchParams(url.search)
+
+    searchParams.delete(id)
+
+    return url.pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')
   }
 
-  function previewToggleParam(value: string): string {
+  const previewToggleParam = (value: string) => {
     return getParam() === value ? previewRemoveParam() : previewSetParam(value)
   }
 
@@ -67,82 +82,116 @@ export function useQueryParam(id: QueryParamId) {
  * @param id The query parameter ID to manage (multiple values)
  */
 export function useQueryParams(id: QueryParamsId) {
-  const params = useUrlSearchParams('history')
+  const [params, setParams] = useUrlSearchParams('history')
 
-  const getParams = () => {
-    const v = params[id]
-    if (v == null) return []
-    return Array.isArray(v) ? v : [v]
+  const getParams = (): string[] => {
+    const values = params()[id]
+    if (values == null) return []
+    return Array.isArray(values) ? values : [values]
   }
 
   const addParam = (value: string) => {
-    const current = getParams()
-    if (!current.includes(value)) {
-      params[id] = [...current, value]
+    const currentValues = getParams()
+    if (!currentValues.includes(value)) {
+      setParams({ [id]: [...currentValues, value] })
     }
   }
 
   const addParams = (values: string[]) => {
-    const current = getParams()
-    const merged = Array.from(new Set([...current, ...values]))
-    params[id] = merged
+    const currentValues = getParams()
+    const merged = Array.from(new Set([...currentValues, ...values]))
+    setParams({ [id]: merged })
   }
 
   const removeParam = (value: string) => {
-    const filtered = getParams().filter(v => v !== value)
-    if (filtered.length === 0) delete params[id]
-    else params[id] = filtered
+    const currentValues = getParams()
+    const newValues = currentValues.filter(v => v !== value)
+
+    if (newValues.length === 0) {
+      setParams({ [id]: '' }) // Empty string will remove the parameter
+    } else {
+      setParams({ [id]: newValues })
+    }
   }
 
   const removeParams = (values: string[]) => {
     const setToRemove = new Set(values)
     const filtered = getParams().filter(v => !setToRemove.has(v))
-    if (filtered.length === 0) delete params[id]
-    else params[id] = filtered
+
+    if (filtered.length === 0) {
+      setParams({ [id]: '' }) // Empty string will remove the parameter
+    } else {
+      setParams({ [id]: filtered })
+    }
   }
 
   const toggleParam = (value: string) => {
-    getParams().includes(value) ? removeParam(value) : addParam(value)
-  }
-
-  // --- Preview helpers ---
-  function previewAddParam(value: string): string {
-    const url = new URL(window.location.href)
-    const current = getParams()
-    if (!current.includes(value)) {
-      url.searchParams.delete(id)
-      for (const v of [...current, value]) url.searchParams.append(id, v)
+    const currentValues = getParams()
+    if (currentValues.includes(value)) {
+      removeParam(value)
+    } else {
+      addParam(value)
     }
-    return url.pathname + (url.search ? url.search : '')
   }
 
-  function previewAddParams(values: string[]): string {
+  const previewAddParam = (value: string) => {
     const url = new URL(window.location.href)
-    const merged = Array.from(new Set([...getParams(), ...values]))
-    url.searchParams.delete(id)
-    for (const v of merged) url.searchParams.append(id, v)
-    return url.pathname + (url.search ? url.search : '')
+    const searchParams = new URLSearchParams(url.search)
+
+    const currentValues = getParams()
+    if (!currentValues.includes(value)) {
+      searchParams.delete(id)
+      currentValues.forEach(v => searchParams.append(id, v))
+      searchParams.append(id, value)
+      return url.pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')
+    } else {
+      // If the value already exists, return the path without changes
+      return url.pathname + (url.search ? url.search : '')
+    }
   }
 
-  function previewRemoveParam(value: string): string {
+  const previewRemoveParam = (value: string) => {
     const url = new URL(window.location.href)
-    const filtered = getParams().filter(v => v !== value)
-    url.searchParams.delete(id)
-    for (const v of filtered) url.searchParams.append(id, v)
-    return url.pathname + (url.search ? url.search : '')
+    const searchParams = new URLSearchParams(url.search)
+
+    const currentValues = getParams()
+    const newValues = currentValues.filter(v => v !== value)
+
+    searchParams.delete(id)
+    newValues.forEach(v => searchParams.append(id, v))
+
+    return url.pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')
   }
 
-  function previewRemoveParams(values: string[]): string {
+  const previewToggleParam = (value: string) => {
+    const currentValues = getParams()
+    return currentValues.includes(value) ? previewRemoveParam(value) : previewAddParam(value)
+  }
+
+  const previewAddParams = (values: string[]) => {
     const url = new URL(window.location.href)
-    const setToRemove = new Set(values)
-    const filtered = getParams().filter(v => !setToRemove.has(v))
-    url.searchParams.delete(id)
-    for (const v of filtered) url.searchParams.append(id, v)
-    return url.pathname + (url.search ? url.search : '')
+    const searchParams = new URLSearchParams(url.search)
+
+    const currentValues = getParams()
+    const newValues = [...new Set([...currentValues, ...values])]
+
+    searchParams.delete(id)
+    newValues.forEach(v => searchParams.append(id, v))
+
+    return url.pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')
   }
 
-  function previewToggleParam(value: string): string {
-    return getParams().includes(value) ? previewRemoveParam(value) : previewAddParam(value)
+  const previewRemoveParams = (values: string[]) => {
+    const url = new URL(window.location.href)
+    const searchParams = new URLSearchParams(url.search)
+
+    const currentValues = getParams()
+    const newValues = currentValues.filter(v => !values.includes(v))
+
+    searchParams.delete(id)
+    newValues.forEach(v => searchParams.append(id, v))
+
+    return url.pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')
   }
 
   return {
@@ -153,9 +202,9 @@ export function useQueryParams(id: QueryParamsId) {
     removeParams,
     toggleParam,
     previewAddParam,
-    previewAddParams,
     previewRemoveParam,
-    previewRemoveParams,
     previewToggleParam,
+    previewAddParams,
+    previewRemoveParams,
   }
 }
