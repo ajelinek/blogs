@@ -10,10 +10,10 @@
     "astro": "astro",
     "lint": "eslint --ext .js,.ts,.astro src",
     "format": "prettier --write .",
-    "test": "playwright test --project=chromium --retries=1 --reporter=list",
-    "test:ui": "playwright test --ui",
-    "test:blog-framework": "playwright test e2e/spec/blog-framework.spec.ts --project=chromium",
-    "test:unit": "vitest run"
+    "test": "NODE_ENV=test playwright test --project=chromium --retries=1 --reporter=list",
+    "test:ui": "NODE_ENV=test playwright test --ui",
+    "test:blog-framework": "NODE_ENV=test playwright test e2e/spec/blog-framework.spec.ts --project=chromium",
+    "test:unit": "NODE_ENV=test vitest run"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.2.6",

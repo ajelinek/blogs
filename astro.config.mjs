@@ -11,5 +11,8 @@ export default defineConfig({
   output: 'static',
   server: {
     port: 4333,
+  },
+  devToolbar: {
+    enabled: process.env.NODE_ENV !== 'test'
   }
 })

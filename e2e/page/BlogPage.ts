@@ -63,38 +63,30 @@ export class BlogPage extends BasePage {
   firstBlogCard = () => this.blogCards().first()
   blogCardTitle = (card: ReturnType<Page['locator']>) => card.getByRole('heading', { level: 2 })
   pagination = () => this.page.getByRole('region', { name: 'Pagination' })
-  paginationControls = () => this.pagination().locator('.pagination-controls')
-  paginationPrevButton = () => this.paginationControls().locator('a:first-child')
-  paginationNextButton = () => this.paginationControls().locator('a:last-child')
-  paginationInfo = () => this.paginationControls().locator('span')
-
-  async getPaginationInfo(): Promise<{ current: number; total: number }> {
-    const infoText = await this.paginationInfo().innerText()
-    const match = infoText.match(/Page (\d+) of (\d+)/)
-    if (!match) {
-      return { current: 0, total: 0 }
-    }
-    return {
-      current: parseInt(match[1], 10),
-      total: parseInt(match[2], 10),
-    }
-  }
+  paginationControls = () => this.pagination()
+  paginationPrevButton = () => this.paginationControls().getByRole('link', { name: 'Previous' })
+  paginationNextButton = () => this.paginationControls().getByRole('link', { name: 'Next' })
+  paginationInfo = () =>
+    this.paginationControls()
+      .getByRole('paragraph')
+      .filter({ hasText: /Current Page:/ })
 
   async clickNextPage(): Promise<void> {
     const nextButton = this.paginationNextButton()
-    const isDisabled = await nextButton.evaluate(el => el.classList.contains('disabled'))
+    const isDisabled = await nextButton.evaluate(el => el.classList.contains('disabled')).catch(() => false)
     if (!isDisabled) {
       await nextButton.click()
       await this.page.waitForLoadState('networkidle')
 
       // Wait for URL to update
       await this.page.waitForURL(/.*page=\d+.*/)
+      await this.postsRegion().getByRole('article').first().waitFor({ state: 'visible', timeout: 5000 })
     }
   }
 
   async clickPrevPage(): Promise<void> {
     const prevButton = this.paginationPrevButton()
-    const isDisabled = await prevButton.evaluate(el => el.classList.contains('disabled'))
+    const isDisabled = await prevButton.evaluate(el => el.classList.contains('disabled')).catch(() => false)
     if (!isDisabled) {
       await prevButton.click()
       await this.page.waitForLoadState('networkidle')
@@ -106,14 +98,63 @@ export class BlogPage extends BasePage {
       } else {
         await this.page.waitForURL(url => !url.toString().includes('page='))
       }
-
+      await this.postsRegion().getByRole('article').first().waitFor({ state: 'visible', timeout: 5000 })
       // Wait a moment for the page to fully render
       await this.page.waitForTimeout(200)
     }
   }
 
+  async clickPageNumber(pageNumber: number): Promise<void> {
+    const pageLink = this.paginationControls().getByRole('link', { name: `${pageNumber}` })
+    await pageLink.click()
+    await this.page.waitForLoadState('networkidle')
+    // Wait for URL to update, or to not contain 'page=' if it's page 1
+    if (pageNumber === 1) {
+      await this.page.waitForURL(url => !url.toString().includes('page=') || url.toString().includes('page=1'))
+    } else {
+      await this.page.waitForURL(new RegExp(`.*page=${pageNumber}.*`))
+    }
+    await this.postsRegion().getByRole('article').first().waitFor({ state: 'visible', timeout: 5000 })
+    await this.page.waitForTimeout(200) // Wait for content to settle
+  }
+
   async isPaginationVisible(): Promise<boolean> {
-    return await this.pagination().isVisible()
+    try {
+      // Wait for either button to be potentially visible before checking, timeout is short as one should appear quickly if pagination exists.
+      await this.page.waitForFunction(
+        () => {
+          const nextButton = document.evaluate(
+            "//a[normalize-space(.)='Next']",
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null
+          ).singleNodeValue
+          const prevButton = document.evaluate(
+            "//a[normalize-space(.)='Previous']",
+            document,
+            null,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null
+          ).singleNodeValue
+          return (
+            (nextButton && (nextButton as HTMLElement).offsetParent !== null) ||
+            (prevButton && (prevButton as HTMLElement).offsetParent !== null)
+          )
+        },
+        { timeout: 3000 }
+      )
+    } catch (e) {
+      // If timeout occurs, it means neither button became visible, so pagination is not visible.
+      return false
+    }
+    const nextVisible = await this.paginationNextButton()
+      .isVisible()
+      .catch(() => false)
+    const prevVisible = await this.paginationPrevButton()
+      .isVisible()
+      .catch(() => false)
+    return nextVisible || prevVisible
   }
 
   // Blog post delegations

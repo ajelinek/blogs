@@ -18,15 +18,11 @@ async function setUpBlogPost(page: Page, slug: string = '2023-07-15-solid-js-int
 test('Blog pagination works correctly', async ({ page }) => {
   const { blogPage } = await setUp(page)
 
-  const isPaginationVisible = await blogPage.isPaginationVisible()
-  expect(isPaginationVisible).toBe(true)
+  expect(await blogPage.isPaginationVisible()).toBe(true)
 
-  const initialPagination = await blogPage.getPaginationInfo()
-  expect(initialPagination.current).toBe(1)
-  expect(initialPagination.total).toBeGreaterThan(1)
-
-  const postsPerPage = 3
-  expect(await blogPage.blogCards().count()).toBeLessThanOrEqual(postsPerPage)
+  // Initial landing: 6 posts, no page param
+  expect(await blogPage.blogCards().count()).toBe(6)
+  expect(page.url()).not.toContain('page=')
 
   const firstPageTitles: string[] = []
   const firstPagePostsCount = await blogPage.blogCards().count()
@@ -36,9 +32,11 @@ test('Blog pagination works correctly', async ({ page }) => {
     firstPageTitles.push(title)
   }
 
+  // Go to page 2
   await blogPage.clickNextPage()
   expect(page.url()).toContain('page=2')
   await expect(blogPage.blogCards().first()).toBeVisible()
+  expect(await blogPage.blogCards().count()).toBe(1)
 
   const secondPageTitles: string[] = []
   const secondPagePostsCount = await blogPage.blogCards().count()
@@ -51,9 +49,11 @@ test('Blog pagination works correctly', async ({ page }) => {
   const hasOverlap = secondPageTitles.some(title => firstPageTitles.includes(title))
   expect(hasOverlap).toBe(false)
 
+  // Go back to page 1 using Previous button
   await blogPage.clickPrevPage()
-  expect(page.url()).not.toContain('page=2')
+  expect(page.url()).not.toContain('page=2') // Should ideally check for page=1 or no page param
   await expect(blogPage.blogCards().first()).toBeVisible()
+  expect(await blogPage.blogCards().count()).toBe(6)
 
   const finalPageTitles: string[] = []
   const finalPagePostsCount = await blogPage.blogCards().count()
@@ -62,8 +62,28 @@ test('Blog pagination works correctly', async ({ page }) => {
     const title = await card.getTitle()
     finalPageTitles.push(title)
   }
-
   expect(finalPageTitles).toEqual(firstPageTitles)
+
+  // Page number navigation
+  await blogPage.clickPageNumber(2)
+  expect(page.url()).toContain('page=2')
+  await expect(blogPage.blogCards().first()).toBeVisible()
+  expect(await blogPage.blogCards().count()).toBe(1)
+
+  await blogPage.clickPageNumber(1)
+  // Depending on implementation, URL might be /blog/ or /blog/?page=1
+  // For this test, let's ensure it's not page=2 and contents match page 1
+  expect(page.url()).not.toContain('page=2')
+  await expect(blogPage.blogCards().first()).toBeVisible()
+  expect(await blogPage.blogCards().count()).toBe(6)
+  const pageOneTitlesAfterNumberClick: string[] = []
+  const pageOnePostsCountAfterNumberClick = await blogPage.blogCards().count()
+  for (let i = 0; i < pageOnePostsCountAfterNumberClick; i++) {
+    const card = blogPage.getBlogCard(i)
+    const title = await card.getTitle()
+    pageOneTitlesAfterNumberClick.push(title)
+  }
+  expect(pageOneTitlesAfterNumberClick).toEqual(firstPageTitles)
 })
 
 test('Blog post reading time is calculated correctly', async ({ page }) => {
