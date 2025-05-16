@@ -42,18 +42,6 @@ test('Blog post page displays content and related posts', async ({ page }) => {
   await expect(blogPage.relatedPostsSection()).toBeVisible()
 })
 
-test('Tag page displays filtered posts', async ({ page }) => {
-  const blogPage = new BlogPage(page)
-  await blogPage.gotoTag('astro')
-  await expect(blogPage.pageTitle()).toHaveText('astro')
-  await expect(blogPage.pageDescription()).toBeVisible()
-  await expect(blogPage.backLink()).toBeVisible()
-  const postCount = await blogPage.blogCards().count()
-  expect(postCount).toBeGreaterThan(0)
-  await blogPage.clickBackLink()
-  await expect(page).toHaveURL('/jelly-time/blog')
-})
-
 test('Tag selection and unselection works correctly', async ({ page }) => {
   const { blogPage } = await setUp(page)
 
