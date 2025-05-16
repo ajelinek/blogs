@@ -1,7 +1,6 @@
-import type { JSX } from 'solid-js'
-import { For, createMemo, onMount, createEffect } from 'solid-js'
+import { For, createMemo } from 'solid-js'
+import { QUERY_PARAM_IDS, useQueryParam } from '../../../utilities/queryParam'
 import styles from './styles.module.css'
-import { useQueryParam, QUERY_PARAM_IDS } from '../../../utilities/queryParam'
 
 type PaginationProps = {
   totalPages: number
@@ -46,12 +45,6 @@ export function Pagination(props: PaginationProps) {
 
   return (
     <section aria-label='Pagination' class={styles.pagination}>
-      <p>Current Page: {currentPage()}</p>
-      <p>Next Page: {nextPage()}</p>
-      <p>Previous Page: {previousPage()}</p>
-      <p>Total Pages: {props.totalPages}</p>
-      <p>Page Numbers: {pageNumbers()}</p>
-      <p>Param Page: {pageParam.getParam()}</p>
       <div class={styles.paginationControls}>
         {/* Previous button */}
         {!isPreviousPageDisabled() ? (
