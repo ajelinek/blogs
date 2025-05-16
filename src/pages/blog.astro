@@ -7,6 +7,14 @@ import type { BlogPost } from '../components/dynamic/BlogCard'
 // Get all blog posts
 const allPosts = await getCollection('blog')
 
+// Log the image object of the first post that has one for inspection
+const firstPostWithImage = allPosts.find(p => p.data.image)
+if (firstPostWithImage) {
+  console.log('Image object for first post with image:', JSON.stringify(firstPostWithImage.data.image, null, 2))
+} else {
+  console.log('No posts found with an image field.')
+}
+
 // Sort by date (newest first) and add slug property to match BlogPost type
 const sortedPosts = allPosts
   .map(post => ({

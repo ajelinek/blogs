@@ -16,14 +16,11 @@ type BlogCardProps = {
 export function BlogCard(props: BlogCardProps) {
   const tagParams = useQueryParams(QUERY_PARAM_IDS.TAG)
   const postUrl = `${BASE_URL}/blog/${props.post.slug}`
-  const imageUrl = props.post.data.image
-    ? `${BASE_URL}/blog/${props.post.slug}/${props.post.data.image.replace(/^\.\//, '')}`
-    : undefined
 
   return (
     <article role='article' aria-label='Blog Post' class={styles.blogCard}>
       <a href={postUrl} class={styles.imageContainer}>
-        {imageUrl && <img src={imageUrl} alt={props.post.data.title} />}
+        <img src={props.post.data?.image?.src} alt={props.post.data.title} />
       </a>
       <div class={styles.content}>
         <div class={styles.meta}>
