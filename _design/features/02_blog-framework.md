@@ -25,19 +25,6 @@ Implement the static blog system, supporting MDX-based posts, listing, and SEO. 
 - All Playwright E2E tests written and passing
 - Code reviewed and merged
 
-## Feature Acceptance Criteria
-
-- [ ] [Feature acceptance criterion 1]
-- [ ] [Feature acceptance criterion 2]
-
-## Feature Constraints
-
-- [Feature constraint 1]
-
-## Feature Dependencies
-
-- [Feature dependency 1]
-
 ---
 
 ## Stories

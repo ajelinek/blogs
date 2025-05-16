@@ -25,19 +25,6 @@ Establish the foundational structure for the blog and presentation platform, ena
 - All Playwright E2E tests written and passing
 - Code reviewed and merged
 
-## Feature Acceptance Criteria
-
-- [ ] [Feature acceptance criterion 1]
-- [ ] [Feature acceptance criterion 2]
-
-## Feature Constraints
-
-- [Feature constraint 1]
-
-## Feature Dependencies
-
-- [Feature dependency 1]
-
 ---
 
 ## Stories
@@ -52,18 +39,18 @@ As a developer, I want a project structure that matches the design so that futur
 
 - [ ] Backlog
 - [ ] In Progress
-- [ ] Done
+- [x] Done
 
 #### Story 1 Acceptance Criteria
 
-- [ ] Astro project initialized
-- [ ] Directory structure matches design docs
-- [ ] pnpm, TypeScript, and linting configured
-- [ ] GitHub Actions workflow for build/deploy to GitHub Pages
+- [x] Astro project initialized
+- [x] Directory structure matches design docs
+- [x] pnpm, TypeScript, and linting configured
+- [] GitHub Actions workflow for build/deploy to GitHub Pages
 
 #### Story 1 Test Cases
 
-- [ ] Playwright E2E test: project builds, deploys, and loads home page
+- [x] Playwright E2E test: project builds, deploys, and loads home page
 
 #### Story 1 Constraints
 

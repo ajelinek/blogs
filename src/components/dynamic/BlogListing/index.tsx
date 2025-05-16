@@ -1,10 +1,10 @@
-import { createSignal, createMemo, For, Show, onMount, createEffect } from 'solid-js'
-import { BlogCard } from '../BlogCard'
+import { createMemo, For, Show } from 'solid-js'
+import { QUERY_PARAM_IDS, useQueryParam, useQueryParams } from '../../../utilities/queryParam'
 import type { BlogPost } from '../BlogCard'
+import { BlogCard } from '../BlogCard'
 import { Pagination } from '../Pagination'
 import { TagFilter } from '../TagFilter'
 import styles from './styles.module.css'
-import { useQueryParam, useQueryParams, QUERY_PARAM_IDS } from '../../../utilities/queryParam'
 
 // Define props directly in component file
 export type BlogListingProps = {
@@ -26,7 +26,7 @@ export function BlogListing(props: BlogListingProps) {
   })
 
   const pageParam = useQueryParam(QUERY_PARAM_IDS.PAGE)
-  const tagParam = useQueryParams(QUERY_PARAM_IDS.TAG)
+  const tagParams = useQueryParams(QUERY_PARAM_IDS.TAG)
 
   // Get current page from URL parameters
   const currentPage = () => {
@@ -34,23 +34,19 @@ export function BlogListing(props: BlogListingProps) {
     return page ? parseInt(page) : 1
   }
 
-  // Get selected tag from URL parameters
-  const selectedTag = () => {
-    const tags = tagParam.getParams()
-    return tags.length > 0 ? tags[0] : null
-  }
-
-  // Filter posts based on selected tag
+  // Filter posts based on selected tags (must include ALL selected tags)
   const filteredPosts = createMemo(() => {
-    const tag = selectedTag()
-    if (!tag) return posts()
-    return posts().filter(post => post.data.tags.includes(tag))
+    const tagsToFilter = tagParams.getParams()
+    if (tagsToFilter.length === 0) return posts() // If no tags selected, return all posts
+
+    return posts().filter(post => {
+      // Ensure the post's tags array contains every tag in tagsToFilter
+      return tagsToFilter.every((tag: string) => post.data.tags.includes(tag))
+    })
   })
 
-  // Calculate total pages
   const totalPages = createMemo(() => Math.ceil(filteredPosts().length / postsPerPage()))
 
-  // Get posts for current page
   const visiblePosts = createMemo(() => {
     const startIndex = (currentPage() - 1) * postsPerPage()
     const endIndex = startIndex + postsPerPage()
@@ -60,7 +56,7 @@ export function BlogListing(props: BlogListingProps) {
   return (
     <div>
       {/* Tag Filter Component */}
-      <TagFilter tags={allTags()} selectedTag={selectedTag()} currentPage={currentPage()} />
+      <TagFilter tags={allTags()} />
 
       {/* Blog Posts */}
       <section aria-label='Blog Posts' class='posts'>
@@ -68,7 +64,13 @@ export function BlogListing(props: BlogListingProps) {
           when={visiblePosts().length > 0}
           fallback={
             <div class={styles.noResults}>
-              <p>No posts found{selectedTag() ? ` with tag "${selectedTag()}"` : ''}.</p>
+              <p>
+                No posts found
+                {tagParams.getParams().length > 0
+                  ? ` with tag${tagParams.getParams().length > 1 ? 's' : ''} "${tagParams.getParams().join(' & ')}"`
+                  : ''}
+                .
+              </p>
             </div>
           }>
           <div class={styles.blogGrid}>
