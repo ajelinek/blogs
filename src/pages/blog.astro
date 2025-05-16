@@ -9,7 +9,11 @@ const allPosts = await getCollection('blog')
 
 // Sort by date (newest first) and add slug property to match BlogPost type
 const sortedPosts = allPosts
-  .map(post => ({ ...post, slug: post.id }))
+  .map(post => ({
+    ...post,
+    // Create a clean slug by removing /index.mdx or .mdx from the id
+    slug: post.id.replace(/(\index)?\.md(x)?$/, ''),
+  }))
   .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()) as BlogPost[]
 ---
 

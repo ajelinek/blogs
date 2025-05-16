@@ -101,8 +101,12 @@ description: Apply when implementing or modifying tests, test setup functions, p
   })
   ```
 
-# Test data generation
+# Anti-Patterns
+- NO data-testId usage
+- NO waitFor* usage
+- NO timeout usage
 
+# Test data generation
 - Utilities per table/object.
 - Allow overriding specific fields.
 - Only specify needed attributes for assertions.

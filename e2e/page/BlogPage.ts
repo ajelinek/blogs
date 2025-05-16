@@ -57,12 +57,22 @@ export class BlogPage extends BasePage {
   }
 
   getBlogCard = (index: number = 0) => {
-    return new BlogCardComponent(this.blogCards().nth(index))
+    return new BlogCardComponent(this.blogCards().nth(index), this.page)
+  }
+
+  getBlogCardByTitle = (title: string) => {
+    return new BlogCardComponent(
+      this.blogCards()
+        .filter({ has: this.page.getByRole('heading', { name: title, level: 2 }) })
+        .first(),
+      this.page
+    )
   }
 
   firstBlogCard = () => this.blogCards().first()
   blogCardTitle = (card: ReturnType<Page['locator']>) => card.getByRole('heading', { level: 2 })
   pagination = () => this.page.getByRole('region', { name: 'Pagination' })
+
   paginationControls = () => this.pagination()
   paginationPrevButton = () => this.paginationControls().getByRole('link', { name: 'Previous' })
   paginationNextButton = () => this.paginationControls().getByRole('link', { name: 'Next' })

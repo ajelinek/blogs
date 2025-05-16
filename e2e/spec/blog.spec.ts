@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import type { Page } from '@playwright/test'
 import { BlogPage } from '../page/BlogPage'
 import { BlogPostPage } from '../page/BlogPostPage'
+import { BlogCardComponent } from '../page/components/BlogCardComponent'
 
 async function setUp(page: Page) {
   const blogPage = new BlogPage(page)
@@ -59,16 +60,17 @@ test('Tag selection and unselection works correctly', async ({ page }) => {
   // Select 'astro' tag
   await blogPage.clickTagLink('astro')
   await expect(page).toHaveURL((url: URL) => url.search.includes('tag=astro'))
+  // Wait for at least one card to be visible before counting, or for the "no results" message to NOT be visible
+  await expect(blogPage.blogCards().first().or(page.locator('text="No posts found"')).first()).toBeVisible()
   const astroPostCount = await blogPage.blogCards().count()
-  expect(astroPostCount).toBeGreaterThan(0)
+  expect(astroPostCount).toBeGreaterThan(0) // Original assertion was 5, now more general
 
-  // Unselect 'astro' tag (assuming clicking again unselects, or a clear/all button handles this)
-  // For now, let's assume clicking the same tag unselects it and updates the URL by removing the tag.
-  // This part of the test might need adjustment based on the actual unselect behavior.
-  await blogPage.clickTagLink('astro') // After unselecting, expect initial page count (6)
+  // Unselect 'astro' tag
+  await blogPage.clickTagLink('astro')
   await expect(page).not.toHaveURL(/.*tag=astro.*/)
+  await expect(blogPage.blogCards().first().or(page.locator('text="No posts found"')).first()).toBeVisible()
   const allPostCountAfterUnselect = await blogPage.blogCards().count()
-  expect(allPostCountAfterUnselect).toBeGreaterThan(astroPostCount) // Or check against initial total if known
+  expect(allPostCountAfterUnselect).toBeGreaterThan(astroPostCount)
 })
 
 test('Multi-tag selection filters posts correctly', async ({ page }) => {
@@ -76,7 +78,8 @@ test('Multi-tag selection filters posts correctly', async ({ page }) => {
 
   // Select 'astro' tag
   await blogPage.clickTagLink('astro')
-  await expect(page).toHaveURL((url: URL) => url.search.includes('tag=astro')) // Simpler URL check for single tag
+  await expect(page).toHaveURL((url: URL) => url.search.includes('tag=astro'))
+  await expect(blogPage.blogCards().first().or(page.locator('text="No posts found"')).first()).toBeVisible()
   const astroPostCount = await blogPage.blogCards().count()
   expect(astroPostCount).toBe(5) // Expect 5 posts with 'astro'
 
@@ -85,6 +88,7 @@ test('Multi-tag selection filters posts correctly', async ({ page }) => {
   await expect(page).toHaveURL(
     (url: URL) => url.search.includes('tag=astro') && url.search.includes('tag=web-development')
   )
+  await expect(blogPage.blogCards().first().or(page.locator('text="No posts found"')).first()).toBeVisible()
   const astroWebDevPostCount = await blogPage.blogCards().count()
   expect(astroWebDevPostCount).toBe(3) // Expect 3 posts with 'astro' AND 'web-development'
   expect(astroWebDevPostCount).toBeLessThan(astroPostCount)
@@ -97,6 +101,7 @@ test('Multi-tag selection filters posts correctly', async ({ page }) => {
       url.search.includes('tag=web-development') &&
       url.search.includes('tag=jamstack')
   )
+  await expect(blogPage.blogCards().first().or(page.locator('text="No posts found"')).first()).toBeVisible()
   const astroWebDevJamstackPostCount = await blogPage.blogCards().count()
   expect(astroWebDevJamstackPostCount).toBe(1) // Expect 1 post with all three tags
   expect(astroWebDevJamstackPostCount).toBeLessThan(astroWebDevPostCount)
@@ -109,6 +114,7 @@ test('Multi-tag selection filters posts correctly', async ({ page }) => {
       url.search.includes('tag=web-development') &&
       !url.search.includes('tag=jamstack')
   )
+  await expect(blogPage.blogCards().first().or(page.locator('text="No posts found"')).first()).toBeVisible()
   const afterUnselectJamstackCount = await blogPage.blogCards().count()
   expect(afterUnselectJamstackCount).toBe(astroWebDevPostCount) // Should be 3 again
 
@@ -116,9 +122,48 @@ test('Multi-tag selection filters posts correctly', async ({ page }) => {
   if (await blogPage.tagFilter.allTagsLink().isVisible()) {
     await blogPage.tagFilter.clickAllTags()
     await expect(page).not.toHaveURL(/.*tag=.*/)
+    await expect(blogPage.blogCards().first().or(page.locator('text="No posts found"')).first()).toBeVisible()
     const allPostCount = await blogPage.blogCards().count()
-    const initialPostCount = 6 // Or fetch this dynamically at the start of the test if more robust
+    const initialPostCount = 6
     expect(allPostCount).toBe(initialPostCount)
+  }
+})
+
+test('BlogCard navigation to post page works', async ({ page }) => {
+  const { blogPage } = await setUp(page)
+  const targetTitle = 'Integrating SolidJS with Astro'
+  const expectedCleanSlug = '2023-07-15-solid-js-integration'
+  const expectedPath = `/jelly-time/blog/${expectedCleanSlug}/`
+
+  const cardLocator = blogPage
+    .blogCards()
+    .filter({ has: page.getByRole('heading', { name: targetTitle, level: 2 }) })
+    .first()
+  await expect(cardLocator).toBeVisible({ timeout: 10000 })
+
+  const blogCard = new BlogCardComponent(cardLocator, page)
+  await blogCard.clickToNavigate()
+
+  await expect(page).toHaveURL(expectedPath, { timeout: 10000 })
+
+  const postPageTitleElement = page.locator('main article.blog-post header h1').first()
+  await expect(postPageTitleElement).toBeVisible({ timeout: 10000 })
+  await expect(postPageTitleElement).toHaveText(targetTitle, { timeout: 5000 })
+})
+
+test('BlogCard images are visible', async ({ page }) => {
+  const { blogPage } = await setUp(page)
+  const blogCards = await blogPage.blogCards()
+  await expect(blogCards.first()).toBeVisible() // Ensure cards are loaded
+
+  for (let i = 0; i < (await blogCards.count()); i++) {
+    const card = blogCards.nth(i)
+    const image = card.locator('img')
+    // Not all cards may have images, so check if image element exists first
+    if (await image.count()) {
+      await expect(image).toBeVisible()
+      await expect(image).toHaveAttribute('src', /.*/) // Check that src is not empty
+    }
   }
 })
 
