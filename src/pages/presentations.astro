@@ -1,6 +1,6 @@
 ---
 import { getCollection } from 'astro:content'
-import BaseLayout from '../layouts/BaseLayout.astro' // Using relative path
+import BaseLayout from '../layouts/BaseLayout.astro'
 
 const presentations = await getCollection('presentations')
 ---
@@ -11,9 +11,9 @@ const presentations = await getCollection('presentations')
     presentations.length === 0 ? (
       <p>No presentations found.</p>
     ) : (
-      <ul>
+      <ul role='list'>
         {presentations.map(presentation => (
-          <li>{presentation.data.title}</li>
+          <li role='listitem'>{presentation.data.title}</li>
         ))}
       </ul>
     )

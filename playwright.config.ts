@@ -24,8 +24,8 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'pnpm preview',
+    command: 'pnpm dev',
     port: 4333,
-    reuseExistingServer: false,
+    reuseExistingServer: true,
   },
 })
