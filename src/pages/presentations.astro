@@ -1,22 +1,21 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro'
+import { getCollection } from 'astro:content'
+import BaseLayout from '../layouts/BaseLayout.astro' // Using relative path
+
+const presentations = await getCollection('presentations')
 ---
 
-<BaseLayout title='Presentations | Tech Talks and Slides'>
-  <main>
-    <section class='page-header'>
-      <div class='container'>
-        <h1>Presentations</h1>
-        <p>Tech talks, workshops, and slide decks</p>
-      </div>
-    </section>
-    <section class='presentations'>
-      <div class='container'>
-        <div class='presentation-grid'>
-          <!-- Presentations will go here in future -->
-        </div>
-      </div>
-    </section>
-  </main>
+<BaseLayout title='Presentations'>
+  <h1>Presentations</h1>
+  {
+    presentations.length === 0 ? (
+      <p>No presentations found.</p>
+    ) : (
+      <ul>
+        {presentations.map(presentation => (
+          <li>{presentation.data.title}</li>
+        ))}
+      </ul>
+    )
+  }
 </BaseLayout>
-

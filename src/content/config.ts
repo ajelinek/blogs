@@ -16,6 +16,18 @@ const blogCollection = defineCollection({
     }),
 })
 
+// Define the presentation schema
+const presentationCollection = defineCollection({
+  type: 'content', // MDX files
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    author: z.string().optional(),
+    date: z.coerce.date(), // Astro expects a Date object; YYYY-MM-DD will be coerced
+  }),
+})
+
 export const collections = {
   blog: blogCollection,
+  presentations: presentationCollection,
 }
