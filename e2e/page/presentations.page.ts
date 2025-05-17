@@ -9,10 +9,10 @@ export class PresentationsPage {
 
   // Locators
   mainHeading = () => this.page.getByRole('heading', { name: 'Presentations', level: 1 })
-  presentationListItem = (name: string) => this.page.getByRole('listitem', { name })
+  presentationListItem = (name: string) => this.page.getByRole('listitem').filter({ hasText: name })
 
   // Actions
   async goto(): Promise<void> {
-    await this.page.goto('/presentations')
+    await this.page.goto('/jelly-time/presentations')
   }
 }
