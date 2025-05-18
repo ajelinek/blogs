@@ -9,7 +9,7 @@ async function setUp(page: Page) {
 
 test('page has correct title', async ({ page }) => {
   await setUp(page)
-  await expect(page).toHaveTitle('Presentations')
+  await expect(page).toHaveTitle('Presentations | Tech Talks and Slides')
 })
 
 test('page displays presentation list', async ({ page }) => {

@@ -1,0 +1,90 @@
+---
+import { type SlideNode } from '../../../utilities/slideParser'
+import { evaluate } from '@mdx-js/mdx'
+import * as jsxRuntime from 'astro/jsx-runtime'
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js'
+
+export interface Props {
+  slide: SlideNode
+  slideNumber: string
+  baseAriaLabel: string
+}
+
+const { slide, slideNumber, baseAriaLabel } = Astro.props
+const ariaLabel = `${baseAriaLabel} ${slide.id}`
+
+let ContentComponent: AstroComponentFactory | null = null
+
+if (slide.content && slide.content.trim() !== '') {
+  try {
+    const mdxModule = await evaluate(slide.content, {
+      ...jsxRuntime,
+      Fragment: jsxRuntime.Fragment,
+      jsx: jsxRuntime.jsx,
+      jsxs: jsxRuntime.jsxs,
+    })
+    if (mdxModule && typeof mdxModule.default === 'function') {
+      ContentComponent = mdxModule.default as AstroComponentFactory
+    } else {
+      console.error(`Default export from MDX evaluation is not a component for slide ${slide.id}`)
+    }
+  } catch (e) {
+    console.error(`Error evaluating MDX for slide ${slide.id}:`, e)
+    console.error(`Problematic MDX content for slide ${slide.id}:\n`, slide.content)
+  }
+}
+
+const level = slide.id.split('.').length - 1
+---
+
+<section
+  role='region'
+  aria-label={ariaLabel}
+  data-slide-id={slide.id}
+  class:list={[`slide-container`, `slide-level-${level}`]}
+>
+  <div class='slide-content-wrapper' role='region' aria-label='slide content'>
+    {ContentComponent && <ContentComponent />}
+    {
+      !ContentComponent && slide.content && slide.content.trim() !== '' && (
+        <p>Error rendering slide content. Check console.</p>
+      )
+    }
+    {(!slide.content || slide.content.trim() === '') && <p>(This slide has no direct content)</p>}
+  </div>
+</section>
+
+<style define:vars={{ level }}>
+  .slide-container {
+    border: 1px solid #ccc;
+    padding: 1em;
+    margin-bottom: 1em;
+    background-color: #f9f9f9;
+  }
+  .slide-level-0 {
+    /* specific styles for top-level slides */
+  }
+  .slide-level-1 {
+    margin-left: 20px;
+    border-color: #aaa;
+    background-color: #efefef;
+  }
+  .slide-level-2 {
+    margin-left: 40px; /* 20px more than level 1 */
+    border-color: #888;
+    background-color: #e5e5e5;
+  }
+  .slide-level-3 {
+    margin-left: 60px;
+    border-color: #666;
+    background-color: #dddddd;
+  }
+  .slide-level-4 {
+    margin-left: 80px;
+    border-color: #444;
+    background-color: #d3d3d3;
+  }
+  .slide-content-wrapper {
+    /* styles for the direct content of a slide */
+  }
+</style>

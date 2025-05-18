@@ -14,6 +14,9 @@ importers:
       '@astrojs/solid-js':
         specifier: ^4.0.1
         version: 4.4.4(@types/node@22.15.17)(solid-js@1.9.6)
+      '@mdx-js/mdx':
+        specifier: ^3.1.0
+        version: 3.1.0(acorn@8.14.1)
       astro:
         specifier: ^5.7.12
         version: 5.7.12(@types/node@22.15.17)(rollup@4.40.2)(typescript@5.8.3)

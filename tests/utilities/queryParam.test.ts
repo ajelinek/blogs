@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useQueryParam, useQueryParams, QUERY_PARAM_IDS } from '../src/utilities/queryParam'
+import { useQueryParam, useQueryParams, QUERY_PARAM_IDS } from '../../src/utilities/queryParam'
 
 // New tests for useQueryParam
 describe('useQueryParam', () => {

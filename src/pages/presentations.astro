@@ -13,7 +13,9 @@ const presentations = await getCollection('presentations')
     ) : (
       <ul role='list'>
         {presentations.map(presentation => (
-          <li role='listitem'>{presentation.data.title}</li>
+          <li role='listitem'>
+            <a href={`/jelly-time/presentations/${presentation.slug}/`}>{presentation.data.title}</a>
+          </li>
         ))}
       </ul>
     )
