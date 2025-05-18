@@ -4,6 +4,7 @@ export { BlogPage } from './BlogPage'
 export { BlogTagPage } from './BlogTagPage'
 export { BlogPostPage } from './BlogPostPage'
 export { NavigationPage } from './NavigationPage'
+export { PresentationsPage } from './presentations.page'
 
 // Components
 export { BlogCardComponent } from './components/BlogCardComponent'
