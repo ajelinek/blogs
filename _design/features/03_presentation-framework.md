@@ -103,19 +103,19 @@ As a content author, I need a clear directory structure and defined frontmatter 
 
 - [ ] Backlog
 - [ ] In Progress
-- [ ] Done
+- [x] Done
 
 #### Story 1.1 Acceptance Criteria
 
-- [ ] Presentations are stored within `src/content/presentations/[slug]/index.mdx`.
-- [ ] Each presentation's `index.mdx` frontmatter includes `title` (string, required), `description` (string, required), `author` (string, optional), and `date` (YYYY-MM-DD, required).
-- [ ] A content schema (e.g., using Astro's content collections with Zod) is defined and enforced for presentation frontmatter.
+- [x] Presentations are stored within `src/content/presentations/[slug]/index.mdx`.
+- [x] Each presentation's `index.mdx` frontmatter includes `title` (string, required), `description` (string, required), `author` (string, optional), and `date` (YYYY-MM-DD, required).
+- [x] A content schema (e.g., using Astro's content collections with Zod) is defined and enforced for presentation frontmatter.
 
 #### Story 1.1 Test Cases
 
-- [ ] Unit test: Validate frontmatter schema compliance for various valid and invalid inputs.
-- [ ] E2E test: A presentation with correct frontmatter and directory structure is correctly listed and accessible.
-- [ ] E2E test: Attempting to build with a presentation having invalid/missing frontmatter results in a descriptive error.
+- [x] Unit test: Validate frontmatter schema compliance for various valid and invalid inputs.
+- [x] E2E test: A presentation with correct frontmatter and directory structure is correctly listed and accessible.
+- [x] E2E test: Attempting to build with a presentation having invalid/missing frontmatter results in a descriptive error.
 
 #### Story 1.1 Constraints
 
