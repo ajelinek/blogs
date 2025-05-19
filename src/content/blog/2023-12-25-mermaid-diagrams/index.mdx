@@ -1,0 +1,154 @@
+---
+title: "Using Mermaid Diagrams in Blog Posts"
+description: "A guide to creating and styling diagrams with Mermaid in MDX"
+pubDate: 2023-12-25
+author: "Test Author"
+tags: ["test", "mermaid", "diagrams", "markdown"]
+image: "./images/placeholder.png"
+testOnly: true
+---
+
+# Using Mermaid Diagrams in Blog Posts
+
+Mermaid lets you create diagrams and visualizations using text and code. This post demonstrates how to use Mermaid in your MDX blog posts.
+
+## Flowchart Example
+
+```mermaid
+flowchart TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+    C --> E[Deploy]
+```
+
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant API
+    participant Database
+    
+    Browser->>API: GET /posts
+    API->>Database: Query posts
+    Database-->>API: Return posts data
+    API-->>Browser: Send JSON response
+    
+    Browser->>API: POST /posts
+    API->>Database: Insert new post
+    Database-->>API: Confirm insertion
+    API-->>Browser: Success response
+```
+
+## Class Diagram
+
+```mermaid
+classDiagram
+    class BlogPost {
+        +String title
+        +String content
+        +Date publishedAt
+        +String[] tags
+        +publish()
+        +archive()
+    }
+    
+    class Author {
+        +String name
+        +String bio
+        +BlogPost[] posts
+        +writePost()
+    }
+    
+    BlogPost <-- Author : writes
+```
+
+## Gantt Chart
+
+```mermaid
+gantt
+    title Blog Development Timeline
+    dateFormat  YYYY-MM-DD
+    
+    section Planning
+    Research        :a1, 2023-12-01, 7d
+    Design          :a2, after a1, 5d
+    
+    section Implementation
+    Development     :a3, after a2, 10d
+    Testing         :a4, after a3, 5d
+    
+    section Launch
+    Deployment      :a5, after a4, 1d
+    Marketing       :a6, after a5, 5d
+```
+
+## State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> Review : Submit
+    Review --> Draft : Request changes
+    Review --> Published : Approve
+    Published --> [*]
+```
+
+## Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    BLOG_POST ||--o{ COMMENT : has
+    BLOG_POST {
+        string id PK
+        string title
+        string content
+        date published_date
+    }
+    AUTHOR ||--o{ BLOG_POST : writes
+    AUTHOR {
+        string id PK
+        string name
+        string email
+    }
+    COMMENT {
+        string id PK
+        string content
+        string post_id FK
+        string author_id FK
+    }
+```
+
+## Using Mermaid in Your Posts
+
+To add Mermaid diagrams to your posts:
+
+1. Use the `mermaid` code fence
+2. Write your diagram definition
+3. The diagram will be rendered automatically
+
+## Styling Tips
+
+You can customize the appearance of your diagrams:
+
+```mermaid
+flowchart LR
+    A[Start] -->|Styled| B[Process]
+    B --> C{Decision}
+    C -->|Yes| D[Output 1]
+    C -->|No| E[Output 2]
+    
+    classDef green fill:#9f6,stroke:#333,stroke-width:2px
+    classDef orange fill:#f96,stroke:#333,stroke-width:4px
+    class A,E green
+    class B,C,D orange
+```
+
+## Conclusion
+
+Mermaid diagrams are a powerful way to visualize concepts in your technical blog posts. 
+```
+
+</rewritten_file>

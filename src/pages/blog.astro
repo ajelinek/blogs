@@ -1,22 +1,53 @@
 ---
+import { getCollection } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
+import { BlogListing } from '../components/dynamic'
+import type { BlogPost } from '../components/dynamic/BlogCard'
+
+// Get all blog posts
+const allPosts = await getCollection('blog')
+
+// Log the image object of the first post that has one for inspection
+const firstPostWithImage = allPosts.find(p => p.data.image)
+if (firstPostWithImage) {
+  console.log('Image object for first post with image:', JSON.stringify(firstPostWithImage.data.image, null, 2))
+} else {
+  console.log('No posts found with an image field.')
+}
+
+// Sort by date (newest first) and add slug property to match BlogPost type
+const sortedPosts = allPosts
+  .map(post => ({
+    ...post,
+    // Create a clean slug by removing /index.mdx or .mdx from the id
+    slug: post.id.replace(/(\index)?\.md(x)?$/, ''),
+  }))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()) as BlogPost[]
 ---
 
 <BaseLayout title='Blog | Articles and Tutorials'>
   <main>
-    <section class='page-header'>
+    <section aria-label='Blog Header' class='page-header'>
       <div class='container'>
         <h1>Blog Posts</h1>
         <p>Technical articles and tutorials</p>
       </div>
     </section>
-    <section class='posts'>
-      <div class='container'>
-        <div class='post-grid'>
-          <!-- Blog posts will go here in future -->
-        </div>
-      </div>
-    </section>
+
+    <div class='container'>
+      <BlogListing posts={sortedPosts} postsPerPage={6} client:only='solid-js' />
+    </div>
   </main>
 </BaseLayout>
 
+<style>
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+</style>

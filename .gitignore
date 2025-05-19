@@ -38,3 +38,5 @@ test-results/
 
 # Others
 *.local 
+test-results/.last-run.json
+test-results/.last-run.json

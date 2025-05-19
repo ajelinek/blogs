@@ -1,0 +1,236 @@
+---
+import { getCollection, getEntry } from 'astro:content'
+import type { CollectionEntry } from 'astro:content'
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { formatDate, calculateReadingTime } from '../../utilities/dateUtils'
+
+// Define the correct type for blog entries
+interface BlogEntry extends CollectionEntry<'blog'> {
+  slug: string
+  body: string
+  render(): Promise<{ Content: any }>
+}
+
+export async function getStaticPaths() {
+  const blogEntries = (await getCollection('blog')) as BlogEntry[]
+  return blogEntries.map(entry => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }))
+}
+
+const { entry } = Astro.props as { entry: BlogEntry }
+const { Content } = await entry.render()
+
+const { title, description, pubDate, author, tags, image } = entry.data
+
+// Get related posts (posts with at least one matching tag)
+const allPosts = (await getCollection('blog')) as BlogEntry[]
+const relatedPosts = allPosts
+  .filter(post => post.slug !== entry.slug && post.data.tags.some((tag: string) => tags.includes(tag)))
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .slice(0, 3)
+
+// Calculate reading time
+const readingTime = calculateReadingTime(entry.body || '')
+
+// Prepare URL for canonical and OG tags
+const canonicalUrl = new URL(`/jelly-time/blog/${entry.slug}`, Astro.url.origin).href
+---
+
+<BaseLayout
+  title={`${title} | Blog`}
+  description={description}
+  image={image}
+  type='article'
+  canonicalUrl={canonicalUrl}
+  article={{
+    publishedTime: pubDate,
+    author: author,
+    tags: tags,
+  }}
+>
+  <main>
+    <article aria-label='Blog Post' class='blog-post'>
+      <header role='banner' aria-label='Post Header'>
+        <div class='container'>
+          <div aria-label='Post Meta' class='meta'>
+            <span class='date'>{formatDate(pubDate)}</span>
+            <span class='reading-time'>{readingTime} min read</span>
+          </div>
+          <h1>{title}</h1>
+          <p class='description'>{description}</p>
+          <div class='author'>By {author}</div>
+          <ul class='tags' role='list'>
+            {
+              tags.map((tag: string) => (
+                <li role='listitem'>
+                  <a href={`/jelly-time/blog?tag=${tag}`} class='tag'>
+                    {tag}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </header>
+
+      {
+        image && (
+          <div class='featured-image'>
+            <div class='container'>
+              <img src={image.src} alt={title} class='featured-image-img' />
+            </div>
+          </div>
+        )
+      }
+
+      <div aria-label='Post Content' class='content'>
+        <div class='container'>
+          <Content />
+        </div>
+      </div>
+    </article>
+
+    {
+      relatedPosts.length > 0 && (
+        <section aria-label='Related Posts' class='related-posts'>
+          <div class='container'>
+            <h2>Related Posts</h2>
+            <div class='related-grid'>
+              {relatedPosts.map(post => (
+                <div class='related-post'>
+                  <h3>
+                    <a href={`/jelly-time/blog/${post.slug}`}>{post.data.title}</a>
+                  </h3>
+                  <p>{post.data.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )
+    }
+  </main>
+</BaseLayout>
+
+<style>
+  .blog-post {
+    padding-bottom: 4rem;
+  }
+
+  header {
+    padding: 3rem 0 2rem;
+  }
+
+  header h1 {
+    margin: 0.5rem 0;
+    font-size: 2.5rem;
+    line-height: 1.2;
+  }
+
+  .description {
+    font-size: 1.25rem;
+    color: #555;
+    margin-bottom: 1.5rem;
+  }
+
+  .meta {
+    display: flex;
+    gap: 1rem;
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  .author {
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .tag {
+    background-color: #f0f0f0;
+    color: #666;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+  }
+
+  .tag:hover {
+    background-color: #e0e0e0;
+    color: #333;
+  }
+
+  .featured-image {
+    margin-bottom: 2rem;
+  }
+
+  .featured-image-img {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .content {
+    line-height: 1.7;
+    font-size: 1.1rem;
+  }
+
+  .content :global(h2) {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .content :global(pre) {
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+  }
+
+  .related-posts {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid #eee;
+  }
+
+  .related-posts h2 {
+    margin-bottom: 1.5rem;
+  }
+
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .related-post h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+  }
+
+  .related-post h3 a {
+    color: #333;
+    text-decoration: none;
+  }
+
+  .related-post h3 a:hover {
+    color: #0077cc;
+  }
+
+  .related-post p {
+    margin: 0;
+    color: #666;
+  }
+</style>

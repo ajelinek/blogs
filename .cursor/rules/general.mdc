@@ -30,6 +30,10 @@ Apply these rules for all feature implementations to ensure alignment with proje
 - **Accuracy First**: Focus on depth and precision in all responses.
 - **Explain As Needed**: Address the request directly, with additional explanations only if required.
 
+# Scrippts to execute
+- `pnpm build` - to build the project and check for errors.  This should be ran after all code changs. 
+- `pnpm test` - to test the changes to make sure things are working.  This should be ran after all code changes. 
+
 
 # Technology Stack
 - Astro.js (static components)

@@ -1,8 +1,5 @@
-// Re-export components from static
-export * from './static';
-
 // Re-export components from dynamic
-export * from './dynamic';
+export * from './dynamic'
 
-// Re-export components from foundation
-export * from './foundation'; 
+// Foundation and static components are imported directly
+// and not re-exported through this index file

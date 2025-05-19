@@ -11,7 +11,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:4333/jelly-time',
+    baseURL: 'http://localhost:4333',
     trace: 'on-first-retry',
     headless: true,
   },
@@ -24,8 +24,8 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'pnpm preview',
+    command: 'pnpm dev',
     port: 4333,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
   },
 })

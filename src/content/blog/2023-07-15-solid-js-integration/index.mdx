@@ -1,0 +1,67 @@
+---
+title: "Integrating SolidJS with Astro"
+description: "Learn how to use SolidJS components in your Astro website for interactive UI elements"
+pubDate: 2023-07-15
+author: "SolidJS Expert"
+tags: ["astro", "solidjs", "web-development", "javascript"]
+image: "./images/placeholder.png"
+---
+
+# Integrating SolidJS with Astro
+
+SolidJS is a declarative JavaScript library for building user interfaces that offers excellent performance through a fine-grained reactivity system. When combined with Astro's partial hydration approach, you can create highly interactive components that only ship the JavaScript they need.
+
+## Setting Up SolidJS in Astro
+
+First, install the SolidJS integration:
+
+```bash
+npm install @astrojs/solid-js solid-js
+```
+
+Then add it to your Astro config:
+
+```javascript
+import { defineConfig } from 'astro/config';
+import solidJs from '@astrojs/solid-js';
+
+export default defineConfig({
+  integrations: [solidJs()],
+});
+```
+
+## Creating a SolidJS Component
+
+```jsx
+// src/components/Counter.jsx
+import { createSignal } from 'solid-js';
+
+export default function Counter() {
+  const [count, setCount] = createSignal(0);
+  
+  return (
+    <div>
+      <button onClick={() => setCount(count() - 1)}>-</button>
+      <span>{count()}</span>
+      <button onClick={() => setCount(count() + 1)}>+</button>
+    </div>
+  );
+}
+```
+
+## Using SolidJS Components in Astro
+
+```astro
+---
+import Counter from '../components/Counter';
+---
+
+<html>
+  <body>
+    <h1>My Astro Site</h1>
+    <Counter client:load />
+  </body>
+</html>
+```
+
+The `client:load` directive tells Astro to hydrate this component as soon as the page loads. 

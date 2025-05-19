@@ -1,0 +1,50 @@
+---
+title: 'Testing Pagination in Astro'
+description: 'A test post to demonstrate pagination functionality in our blog'
+pubDate: 2024-01-01
+updatedDate: 2024-01-01
+author: 'Test Author'
+image: './images/placeholder.png'
+tags: ['astro', 'pagination', 'test']
+---
+
+# Testing Pagination in Astro
+
+This is a test post created specifically to demonstrate pagination functionality in our Astro blog.
+
+## Why Pagination Matters
+
+Pagination is essential for blogs with many posts. It helps:
+
+1. Improve page load times
+2. Enhance user experience
+3. Make content more discoverable
+4. Reduce server load
+
+## Implementation Details
+
+Our pagination implementation uses Astro's URL search parameters to determine the current page and display the appropriate posts. The pagination controls allow users to navigate between pages easily.
+
+```javascript
+// Example pagination code
+const pageParam = Astro.url.searchParams.get('page')
+const page = pageParam ? parseInt(pageParam) : 1
+const postsPerPage = 6
+const totalPages = Math.ceil(sortedPosts.length / postsPerPage)
+
+// Get posts for current page
+const startIndex = (page - 1) * postsPerPage
+const endIndex = startIndex + postsPerPage
+const currentPosts = sortedPosts.slice(startIndex, endIndex)
+```
+
+## Testing Strategy
+
+To ensure pagination works correctly, we test:
+
+- Correct number of posts per page
+- Navigation between pages
+- URL parameter handling
+- Proper display of pagination controls
+
+This post is part of our test suite for pagination functionality. 
