@@ -1,11 +1,47 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro'
-import { getPresentationSlides } from '../../parsers/presentation/presentationCollection'
+import { getPresentationsWithSlides } from '../../parsers/presentation/presentationCollection'
 import type { PresentationWithSlides } from '../../parsers/presentation/presentationCollection'
 import type { SlideNode } from '../../parsers/presentation/presentationParser'
 
-export async function getStaticPaths() {
-  return await getPresentationSlides()
+// Define the expected shape for items in the paths array
+interface StaticPath {
+  params: { slide: string }
+  props: {
+    presentationData: PresentationWithSlides
+    slideNode: SlideNode
+  }
+}
+
+export async function getStaticPaths(): Promise<StaticPath[]> {
+  const presentationsWithSlides = await getPresentationsWithSlides()
+  const paths: StaticPath[] = []
+
+  for (const presentationData of presentationsWithSlides) {
+    if (presentationData.slideMap && presentationData.slideMap.size > 0) {
+      // Add path for the presentation root, mapping to S1
+      const firstSlideNode = presentationData.slideMap.get('S1')
+      if (firstSlideNode) {
+        paths.push({
+          params: { slide: presentationData.slug }, // e.g., 'sample-presentation'
+          props: {
+            presentationData,
+            slideNode: firstSlideNode, // Explicitly use S1 for root
+          },
+        })
+      }
+
+      // Add paths for all individual slides, including S1 again with its full slug/S1 path
+      // Astro should handle one of these taking precedence or deduplicating if props are identical.
+      for (const slideNode of Array.from(presentationData.slideMap.values())) {
+        paths.push({
+          params: { slide: `${presentationData.slug}/${slideNode.id}` },
+          props: { presentationData, slideNode },
+        })
+      }
+    }
+  }
+  return paths
 }
 
 interface Props {
@@ -14,17 +50,22 @@ interface Props {
 }
 
 const { presentationData, slideNode } = Astro.props as Props
-const { title, slideMap } = presentationData
-const { id, content, prevId, nextId, childId } = slideNode
+const { title } = presentationData
+const { id, content, prevId, nextId, childId, parentId } = slideNode
 
 // Handle navigation links
 const presentationSlug = presentationData.slug
-const basePath = `/jelly-time/presentations/${presentationSlug}`
+const basePath = `/jelly-time/presentation/${presentationSlug}`
 
 // Previous link
 let prevLink: string | null = null
 if (prevId) {
-  prevLink = `${basePath}/${prevId}`
+  prevLink = prevId === 'S1' ? basePath : `${basePath}/${prevId}`
+} else if (parentId) {
+  prevLink =
+    parentId === 'S1' && presentationData.slideMap.get(parentId)?.parentId === null
+      ? basePath
+      : `${basePath}/${parentId}`
 }
 
 // Next link
@@ -38,9 +79,6 @@ let childLink: string | null = null
 if (childId) {
   childLink = `${basePath}/${childId}`
 }
-
-// Calculate the level for styling
-const level = id.split('.').length - 1
 ---
 
 <BaseLayout title={`${title} | Slide ${id}`}>
@@ -52,7 +90,7 @@ const level = id.split('.').length - 1
       </div>
     </header>
 
-    <div class={`slide slide-level-${level}`}>
+    <div class={`slide`} data-slide-id={id}>
       <div class='slide-content'>
         {content ? <div set:html={content} /> : <p class='empty-slide'>(This slide has no content)</p>}
       </div>
@@ -110,28 +148,6 @@ const level = id.split('.').length - 1
     padding: 2rem;
     margin-bottom: 2rem;
     background-color: #f9f9f9;
-  }
-
-  .slide-level-0 {
-    border-color: #4a90e2;
-  }
-
-  .slide-level-1 {
-    margin-left: 20px;
-    border-color: #50c878;
-    background-color: #f5f9f7;
-  }
-
-  .slide-level-2 {
-    margin-left: 40px;
-    border-color: #e6a817;
-    background-color: #faf8f2;
-  }
-
-  .slide-level-3 {
-    margin-left: 60px;
-    border-color: #e64c65;
-    background-color: #faf6f7;
   }
 
   .slide-content {
