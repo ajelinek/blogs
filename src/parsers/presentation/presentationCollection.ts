@@ -1,5 +1,4 @@
 import { getCollection } from 'astro:content'
-import type { CollectionEntry } from 'astro:content'
 import { parseSlides, type SlideNode } from './presentationParser'
 
 // Type for basic presentation metadata
