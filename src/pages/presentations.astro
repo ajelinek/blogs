@@ -1,23 +1,92 @@
 ---
-import { getCollection } from 'astro:content'
 import BaseLayout from '../layouts/BaseLayout.astro'
+import { getPresentations } from '../parsers/presentation/presentationCollection'
 
-const presentations = await getCollection('presentations')
+const presentations = await getPresentations()
 ---
 
 <BaseLayout title='Presentations | Tech Talks and Slides'>
-  <h1>Presentations</h1>
-  {
-    presentations.length === 0 ? (
-      <p>No presentations found.</p>
-    ) : (
-      <ul role='list'>
-        {presentations.map(presentation => (
-          <li role='listitem'>
-            <a href={`/jelly-time/presentations/${presentation.slug}/`}>{presentation.data.title}</a>
-          </li>
-        ))}
-      </ul>
-    )
-  }
+  <main class='container'>
+    <h1>Presentations</h1>
+    {
+      presentations.length === 0 ? (
+        <p>No presentations found.</p>
+      ) : (
+        <ul role='list' class='presentations-list'>
+          {presentations.map(presentation => (
+            <li role='listitem' class='presentation-item'>
+              <a href={presentation.url}>
+                <h2>{presentation.title}</h2>
+                <p>{presentation.description}</p>
+                {presentation.author && <div class='author'>By {presentation.author}</div>}
+                <div class='date'>{presentation.date.toLocaleDateString()}</div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </main>
 </BaseLayout>
+
+<style>
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  h1 {
+    margin-bottom: 2rem;
+  }
+
+  .presentations-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+
+  .presentation-item {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .presentation-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .presentation-item a {
+    display: block;
+    padding: 1.5rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .presentation-item h2 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+  }
+
+  .presentation-item p {
+    color: #555;
+    margin-bottom: 1rem;
+  }
+
+  .author {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .date {
+    font-size: 0.8rem;
+    color: #777;
+  }
+</style>

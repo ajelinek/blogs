@@ -456,4 +456,48 @@ Content for 3
     }
     expect(parseSlides(mdx)).toEqual(expected)
   })
+
+  it('should correctly parse sample-presentation.mdx content', () => {
+    const mdxContent = `
+--- 
+title: Sample Presentation
+description: A demonstration of the presentation slide system.
+pubDate: 2023-01-01
+tags: ["astro", "slides", "testing"]
+---
+
+{/* slide-start */}
+# Welcome to Sample Presentation
+This is the first slide.
+{/* slide-end */}
+
+{/* slide-start */}
+## Second Slide
+Content for the second slide.
+{/* slide-end */}
+
+{/* slide-start */}
+## Slide with Nested Content
+This slide contains other slides.
+    {/* slide-start */}
+    ### Nested Slide 1
+    Content for 3.1
+    {/* slide-end */}
+    {/* slide-start */}
+    ### Nested Slide 2
+    Content for 3.2
+    {/* slide-end */}
+{/* slide-end */}
+
+{/* slide-start */}
+## Final Slide
+The last slide in this presentation.
+{/* slide-end */}
+`
+    const result = parseSlides(mdxContent)
+    expect(result.rootSlideId).toBe('S1')
+    expect(result.slides.size).toBe(6) // S1, S2, S3, S3.1, S3.2, S4
+    expect(result.slides.has('S1')).toBe(true)
+    expect(result.slides.get('S1')?.content).toContain('# Welcome to Sample Presentation')
+  })
 })

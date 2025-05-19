@@ -1,85 +1,141 @@
 import { test, expect, type Page } from '@playwright/test'
 import { PresentationsPage } from '../page/presentations.page'
 
-async function setUp(page: Page, slug = 'sample-presentation') {
-  const presentationsPage = new PresentationsPage(page)
-  await presentationsPage.gotoPresentation(slug)
-  return { presentationsPage }
+const PRESENTATION_SLUG = 'sample-presentation'
+
+interface SlideMeta {
+  content: string
+  prev: string | null
+  next: string | null
 }
 
-test('parser correctly identifies slide blocks from sample MDX content', async ({ page }) => {
-  const { presentationsPage } = await setUp(page)
+const SLIDES_INFO: Record<string, SlideMeta> = {
+  S1: { content: 'Welcome to Sample Presentation', prev: null, next: 'S2' },
+  S2: { content: 'Second Slide', prev: 'S1', next: 'S3' },
+  S3: { content: 'Slide with Nested Content', prev: 'S2', next: 'S3.1' },
+  'S3.1': { content: 'Nested Slide 1', prev: 'S3', next: 'S3.2' },
+  'S3.2': { content: 'Nested Slide 2', prev: 'S3.1', next: 'S4' },
+  S4: { content: 'Final Slide', prev: 'S3.2', next: null },
+}
 
-  // Verify there are multiple slides identified from the MDX content
-  const slideCount = await presentationsPage.getSlideCount()
-  expect(slideCount).toBeGreaterThan(0)
+test.describe('Presentation Slide Navigation and Content', () => {
+  let presentationsPage: PresentationsPage
 
-  // Once a slide is found, verify its content is visible
-  if (slideCount > 0) {
-    const firstSlide = presentationsPage.slideById('S1') // Assuming S1 is a known top-level slide ID
-    await expect(firstSlide).toBeVisible()
-    const firstSlideContent = presentationsPage.slideContentById('S1')
-    await expect(firstSlideContent).toBeVisible()
-    expect(await firstSlideContent.textContent()).not.toBeNull()
-  }
-})
+  test.beforeEach(async ({ page }) => {
+    presentationsPage = new PresentationsPage(page)
+  })
 
-test('parser correctly identifies nested slide structures', async ({ page }) => {
-  const presentationsPage = new PresentationsPage(page)
-  await presentationsPage.gotoPresentation('sample-presentation') // sample-presentation has nested slides like S1.1
+  test('root slide of presentation is rendered correctly', async ({ page }) => {
+    await presentationsPage.gotoPresentationSlide(PRESENTATION_SLUG) // Navigates to .../sample-presentation/
 
-  // Define the ID of a known parent slide from sample-presentation.mdx
-  // S3 is "## Slide with Nested Content" and has children S3.1 and S3.2
-  const parentSlideId = 'S3'
+    await expect(presentationsPage.slideById('S1')).toBeVisible()
+    await expect(presentationsPage.currentSlideContent()).toContainText(SLIDES_INFO.S1.content)
+    await expect(presentationsPage.prevSlideLink()).not.toBeVisible() // Root has no prev
+    const nextLinkS1 = presentationsPage.nextSlideLink()
+    await expect(nextLinkS1).toBeVisible()
+    await expect(nextLinkS1).toHaveAttribute(
+      'href',
+      `/jelly-time/presentations/${PRESENTATION_SLUG}/${SLIDES_INFO.S1.next}`
+    )
+  })
 
-  // Verify the parent slide itself is visible
-  const parentSlide = presentationsPage.slideById(parentSlideId)
-  await expect(parentSlide).toBeVisible()
-  expect(await presentationsPage.slideContentById(parentSlideId).textContent()).toContain('Slide with Nested Content')
+  test('can navigate to a specific slide and see its content and nav links', async ({ page }) => {
+    const slideIdToTest = 'S3'
+    const slideInfo = SLIDES_INFO[slideIdToTest]
+    await presentationsPage.gotoPresentationSlide(PRESENTATION_SLUG, slideIdToTest)
 
-  // Verify that there are child slides for this parent
-  const childSlideCount = await presentationsPage.countChildSlidesOf(parentSlideId)
-  expect(childSlideCount).toBeGreaterThan(0)
-  expect(childSlideCount).toEqual(2) // S3 should have S3.1 and S3.2
+    await expect(presentationsPage.slideById(slideIdToTest)).toBeVisible()
+    await expect(presentationsPage.currentSlideContent()).toContainText(slideInfo.content)
 
-  // Verify a specific known child slide content is visible (e.g., S3.1)
-  if (childSlideCount > 0) {
-    const firstChildId = `${parentSlideId}.1` // Construct ID like "S3.1"
-    const firstChildSlide = presentationsPage.slideById(firstChildId)
-    await expect(firstChildSlide).toBeVisible()
-    const firstChildContent = presentationsPage.slideContentById(firstChildId)
-    await expect(firstChildContent).toBeVisible()
-    expect(await firstChildContent.textContent()).toContain('Nested Slide 1') // Check for specific content
-  }
-})
-
-test("presentation with multiple slides renders each slide's content separately", async ({ page }) => {
-  const presentationsPage = new PresentationsPage(page)
-  await presentationsPage.gotoPresentation('sample-presentation')
-
-  const slideCount = await presentationsPage.getSlideCount()
-  expect(slideCount).toBeGreaterThan(1) // Make sure there are at least two slides to compare
-
-  const allSlideIds = []
-  for (let i = 0; i < slideCount; i++) {
-    const slideLocator = presentationsPage.slides().nth(i) // Keep using generic .slides().nth(i) for iteration
-    const slideId = await slideLocator.getAttribute('data-slide-id')
-    if (slideId) allSlideIds.push(slideId)
-  }
-  // Sort IDs to ensure consistent comparison order, S1, S1.1, S1.2, S2 etc.
-  allSlideIds.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
-
-  // Compare content of adjacent slides in the sorted list
-  for (let i = 0; i < allSlideIds.length - 1; i++) {
-    const currentSlideId = allSlideIds[i]
-    const nextSlideId = allSlideIds[i + 1]
-
-    const currentSlideText = await presentationsPage.slideContentById(currentSlideId).textContent()
-    const nextSlideText = await presentationsPage.slideContentById(nextSlideId).textContent()
-
-    // Allow for empty content, but if both have content, it should differ
-    if (currentSlideText?.trim() && nextSlideText?.trim()) {
-      expect(currentSlideText).not.toEqual(nextSlideText)
+    const prevLink = presentationsPage.prevSlideLink()
+    await expect(prevLink).toBeVisible()
+    let expectedPrevHrefS3: string
+    if (slideInfo.prev === 'S1') {
+      // S1 is the root slide
+      expectedPrevHrefS3 = `/jelly-time/presentations/${PRESENTATION_SLUG}/`
+    } else {
+      expectedPrevHrefS3 = `/jelly-time/presentations/${PRESENTATION_SLUG}/${slideInfo.prev}`
     }
-  }
+    await expect(prevLink).toHaveAttribute('href', expectedPrevHrefS3)
+
+    const nextLink = presentationsPage.nextSlideLink()
+    await expect(nextLink).toBeVisible()
+    await expect(nextLink).toHaveAttribute('href', `/jelly-time/presentations/${PRESENTATION_SLUG}/${slideInfo.next}`)
+  })
+
+  test('navigating to a nested slide directly shows correct content and nav', async ({ page }) => {
+    const slideIdToTest = 'S3.1'
+    const slideInfo = SLIDES_INFO[slideIdToTest]
+    await presentationsPage.gotoPresentationSlide(PRESENTATION_SLUG, slideIdToTest)
+
+    await expect(presentationsPage.slideById(slideIdToTest)).toBeVisible()
+    await expect(presentationsPage.currentSlideContent()).toContainText(slideInfo.content)
+
+    const prevLink = presentationsPage.prevSlideLink()
+    await expect(prevLink).toBeVisible()
+    let expectedPrevHrefS31: string
+    if (slideInfo.prev === 'S1') {
+      // S1 is the root slide
+      expectedPrevHrefS31 = `/jelly-time/presentations/${PRESENTATION_SLUG}/`
+    } else {
+      expectedPrevHrefS31 = `/jelly-time/presentations/${PRESENTATION_SLUG}/${slideInfo.prev}`
+    }
+    await expect(prevLink).toHaveAttribute('href', expectedPrevHrefS31)
+
+    const nextLink = presentationsPage.nextSlideLink()
+    await expect(nextLink).toBeVisible()
+    await expect(nextLink).toHaveAttribute('href', `/jelly-time/presentations/${PRESENTATION_SLUG}/${slideInfo.next}`)
+  })
+
+  test('can navigate through a sequence of slides using prev/next links', async ({ page }) => {
+    await presentationsPage.gotoPresentationSlide(PRESENTATION_SLUG) // Start at root (S1)
+
+    // S1 -> S2
+    await expect(presentationsPage.slideById('S1')).toBeVisible()
+    await presentationsPage.clickNextSlide()
+    await expect(page).toHaveURL(`/jelly-time/presentations/${PRESENTATION_SLUG}/S2`)
+    await expect(presentationsPage.slideById('S2')).toBeVisible()
+    await expect(presentationsPage.currentSlideContent()).toContainText(SLIDES_INFO.S2.content)
+
+    // S2 -> S3
+    await presentationsPage.clickNextSlide()
+    await expect(page).toHaveURL(`/jelly-time/presentations/${PRESENTATION_SLUG}/S3`)
+    await expect(presentationsPage.slideById('S3')).toBeVisible()
+    await expect(presentationsPage.currentSlideContent()).toContainText(SLIDES_INFO.S3.content)
+
+    // S3 -> S3.1
+    await presentationsPage.clickNextSlide()
+    await expect(page).toHaveURL(`/jelly-time/presentations/${PRESENTATION_SLUG}/S3.1`)
+    await expect(presentationsPage.slideById('S3.1')).toBeVisible()
+    await expect(presentationsPage.currentSlideContent()).toContainText(SLIDES_INFO['S3.1'].content)
+
+    // S3.1 -> S3 (Previous)
+    await presentationsPage.clickPrevSlide()
+    await expect(page).toHaveURL(`/jelly-time/presentations/${PRESENTATION_SLUG}/S3`)
+    await expect(presentationsPage.slideById('S3')).toBeVisible()
+
+    // S3 -> S2 (Previous)
+    await presentationsPage.clickPrevSlide()
+    await expect(page).toHaveURL(`/jelly-time/presentations/${PRESENTATION_SLUG}/S2`)
+    await expect(presentationsPage.slideById('S2')).toBeVisible()
+
+    // S2 -> S1 (Previous - root)
+    await presentationsPage.clickPrevSlide()
+    await expect(page).toHaveURL(new RegExp(`^/jelly-time/presentations/${PRESENTATION_SLUG}/?$`))
+    await expect(presentationsPage.slideById('S1')).toBeVisible()
+  })
+
+  test('last slide has no next link, first slide has no prev link', async ({ page }) => {
+    // Last slide (S4)
+    await presentationsPage.gotoPresentationSlide(PRESENTATION_SLUG, 'S4')
+    await expect(presentationsPage.slideById('S4')).toBeVisible()
+    await expect(presentationsPage.nextSlideLink()).not.toBeVisible()
+    await expect(presentationsPage.prevSlideLink()).toBeVisible() // S4 has a prev (S3.2)
+
+    // First slide (S1 - root)
+    await presentationsPage.gotoPresentationSlide(PRESENTATION_SLUG)
+    await expect(presentationsPage.slideById('S1')).toBeVisible()
+    await expect(presentationsPage.prevSlideLink()).not.toBeVisible()
+    await expect(presentationsPage.nextSlideLink()).toBeVisible()
+  })
 })

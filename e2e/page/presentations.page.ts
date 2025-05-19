@@ -7,57 +7,56 @@ export class PresentationsPage {
 
   private readonly page: Page
 
-  // List view locators
-  mainHeading = () => this.page.getByRole('heading', { name: 'Presentations', level: 1 })
+  // List view locators (for /presentations page)
+  mainPresentationsListingHeading = () => this.page.getByRole('heading', { name: 'Presentations', level: 1 })
   presentationListItem = (name: string) => this.page.getByRole('listitem').filter({ hasText: name })
 
-  // Detail view locators
-  presentationTitle = () => this.page.getByRole('heading', { level: 1 })
-  slides = () => this.page.getByRole('region', { name: /slide/i }) // Generic selector for any slide
-  slideById = (id: string) => this.page.locator(`[data-slide-id="${id}"]`)
-  slideContentByLocator = (locator: Locator) => locator.getByRole('region', { name: 'slide content' })
-  slideContentById = (id: string) => this.slideContentByLocator(this.slideById(id))
-  // Get all slides that are children of a given parent ID (e.g., parentId "S1" -> finds "S1.1", "S1.2")
-  childSlidesOf = (parentId: string) =>
-    this.page.locator(`[data-slide-id^="${parentId}."]`).filter(
-      // Ensure it's a direct child, not a grandchild (e.g. S1.1.1 for parent S1)
-      { has: this.page.locator(`[data-slide-id^="${parentId}."]:not([data-slide-id*=".${parentId}."])`) }
-    )
+  // Detail view locators (for /presentations/[presentationSlug]/[slideSlug] or /index pages)
+  presentationTitleOnSlidePage = () => this.page.getByRole('heading', { level: 1 })
+  // Locates the currently displayed slide container on the page.
+  // Since only one slide is displayed per page, this should find 0 or 1.
+  currentSlideContainer = () => this.page.locator('section[data-slide-id]')
+  // Gets the ID of the currently displayed slide.
+  getCurrentSlideId = async (): Promise<string | null> => {
+    return await this.currentSlideContainer().getAttribute('data-slide-id')
+  }
+  // Gets a locator for a slide if it's the one currently displayed on the page.
+  slideById = (id: string) => this.page.locator(`section[data-slide-id="${id}"]`)
+  // Gets the content area of the currently displayed slide.
+  currentSlideContent = () => this.currentSlideContainer().getByRole('region', { name: 'slide content' })
+  // Navigation links on a slide page
+  prevSlideLink = () => this.page.getByRole('link', { name: /Previous/i })
+  nextSlideLink = () => this.page.getByRole('link', { name: /Next/i })
 
   // Actions
-  async goto(path = '/jelly-time/presentations'): Promise<void> {
+  async gotoPresentationsList(path = '/jelly-time/presentations'): Promise<void> {
     await this.page.goto(path)
   }
 
-  async gotoPresentation(slug: string): Promise<void> {
-    await this.page.goto(`/jelly-time/presentations/${slug}`)
+  // Navigates to a presentation's root slide or a specific slide if slideId is provided.
+  async gotoPresentationSlide(presentationSlug: string, slideId?: string): Promise<void> {
+    const url = slideId
+      ? `/jelly-time/presentations/${presentationSlug}/${slideId}`
+      : `/jelly-time/presentations/${presentationSlug}/`
+    await this.page.goto(url)
+    await this.page.waitForLoadState('domcontentloaded') // Wait for page to load
   }
 
-  async getSlideCount(): Promise<number> {
-    // Counts all elements with data-slide-id, as they are all rendered at the same DOM level now
-    return await this.page.locator('[data-slide-id]').count()
+  async getDisplayedSlideCount(): Promise<number> {
+    return await this.currentSlideContainer().count() // Should be 0 or 1
   }
 
-  async countChildSlidesOf(parentId: string): Promise<number> {
-    // Filter to ensure we only count direct children.
-    // Example: for parent S1, we want S1.1, S1.2, but not S1.1.1
-    const children = this.page.locator(`[data-slide-id^="${parentId}."]`)
-    let count = 0
-    for (const child of await children.all()) {
-      const childId = await child.getAttribute('data-slide-id')
-      if (childId) {
-        const parentPrefixLength = parentId.length + 1 // Length of "S1."
-        if (childId.substring(parentPrefixLength).split('.').length === 1) {
-          count++
-        }
-      }
-    }
-    return count
-  }
-
-  slideContentByIndex = (index: number) => this.slides().nth(index).getByRole('region', { name: 'slide content' })
-
-  async clickPresentation(name: string): Promise<void> {
+  async clickPresentationOnListing(name: string): Promise<void> {
     await this.presentationListItem(name).click()
+  }
+
+  async clickNextSlide(): Promise<void> {
+    await this.nextSlideLink().click()
+    await this.page.waitForLoadState('domcontentloaded')
+  }
+
+  async clickPrevSlide(): Promise<void> {
+    await this.prevSlideLink().click()
+    await this.page.waitForLoadState('domcontentloaded')
   }
 }

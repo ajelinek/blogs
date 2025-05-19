@@ -8,7 +8,6 @@ export interface SlideNode {
 }
 
 export interface ParsedSlidesOutput {
-  rootSlideId: string | null
   slides: Map<string, SlideNode>
 }
 
@@ -17,20 +16,13 @@ const SLIDE_END_COMMENT_MDX = '{\/* slide-end *\/}'
 
 export function parseSlides(mdxContent: string): ParsedSlidesOutput {
   const slidesMap = new Map<string, SlideNode>()
-  let déterminedRootSlideId: string | null = null
   const tempNodes: SlideNode[] = []
 
   const idCounters = new Map<string | null, number>() // Key: parentId (or null for root), Value: next child index for that parent
 
   // If no slide comments are present at all, return empty.
-  // This also handles the "content with no slide comments" and parts of "ignore content outside"
   if (mdxContent.indexOf(SLIDE_START_COMMENT_MDX) === -1) {
-    // Check if the *entire content* should become a single slide if no comments.
-    // The test "should parse content with no slide comments as no slides" expects no slides.
-    // The test "should ignore content outside explicit slide blocks" has preamble/postamble.
-    // If mdxContent is just "Just some text.", and no comments, it should NOT form a slide.
-    // So, if no start comments, always return empty.
-    return { rootSlideId: null, slides: new Map() }
+    return { slides: new Map() }
   }
 
   function generateIdForNode(parentId: string | null): string {
@@ -233,13 +225,6 @@ export function parseSlides(mdxContent: string): ParsedSlidesOutput {
 
   // Populate slidesMap and determine rootSlideId
   if (tempNodes.length > 0) {
-    const rootNodes = tempNodes
-      .filter(n => n.parentId === null)
-      .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' }))
-    if (rootNodes.length > 0) {
-      déterminedRootSlideId = rootNodes[0].id
-    }
-
     // Link nodes (childId, nextId, prevId)
     tempNodes.forEach(node => {
       slidesMap.set(node.id, node)
@@ -258,5 +243,5 @@ export function parseSlides(mdxContent: string): ParsedSlidesOutput {
     })
   }
 
-  return { rootSlideId: déterminedRootSlideId, slides: slidesMap }
+  return { slides: slidesMap }
 }
